@@ -1,0 +1,35 @@
+{
+  "name": "server",
+  "version": "1.0.0",
+  "description": "",
+  "main": "app.js",
+  "type": "module",
+  "scripts": {
+    "start": "node app.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "consola": "^3.1.0",
+    "cors": "^2.8.5",
+    "crypto-js": "^4.1.1",
+    "crypto-random-string": "^5.0.0",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "find-config": "^1.0.0",
+    "json-2-csv": "^4.0.0",
+    "json-like-parse": "^1.0.3",
+    "langchain": "^0.0.95",
+    "mariadb": "^3.1.2",
+    "mongoose": "^7.3.0",
+    "mysql2": "^3.3.5",
+    "nanoid": "^4.0.2",
+    "openai": "^3.3.0",
+    "pg": "^8.11.0",
+    "pg-hstore": "^2.3.4",
+    "sequelize": "^6.32.1",
+    "sql-query-identifier": "^2.5.0",
+    "typeorm": "^0.3.16"
+  }
+}

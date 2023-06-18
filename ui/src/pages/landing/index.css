@@ -1,0 +1,191 @@
+body{
+    font-family: Open Sans,sans-serif;
+  }
+
+  .logo-text {
+    font-family: 'Pacifico', cursive;
+font-family: 'Permanent Marker', cursive;
+font-family: 'Sofia Sans Condensed', sans-serif;
+  }
+
+  .select-radio {
+    padding: 10px;
+    border-radius: 5px;
+    border: 1px solid #efefef;
+  }
+
+  .logo{
+    font-size: 22px;
+    text-decoration: none;
+    color: black;
+    font-weight: 500;
+    letter-spacing: 3px;
+  }
+  .top-bar{
+    background-color: #fff;
+    min-height: 80px;
+  }
+  .mylinks{
+    text-decoration: none;
+    color: #6c757d;
+  }
+  .active{
+    color: #2753ff;
+  }
+  .btn1{
+    font-size: 18px !important;
+    font-weight: 500 !important;
+    background-color: #2753ff !important;
+    color: #fff !important;
+    border-radius: 3px !important;
+  }
+
+  .hero{
+    background-image:url('/wave.svg');
+    background-size: contain;
+    background-position: top;
+    background-repeat: no-repeat;
+    min-height: 100vh;
+  }
+
+  .hero-main{
+    padding-top: 100px;
+  }
+  .hero-text h2{
+    color: #29344a !important;
+    margin-top: 150px;
+  }
+  .hero-text p{
+    padding-top: 15px;
+  }
+  .btn2{
+    font-size: 18px !important;
+    font-weight: 500 !important;
+    background-color: #2753ff !important;
+    color: #fff !important;
+    border-radius: 3px !important;
+    padding: 8px 35px 8px 35px !important;
+    margin-top: 15px;
+  }
+  .hero1 img{
+    width: 100%;
+  }
+  .services-text{
+    color: #29344a !important;
+  }
+  .icon{
+    font-size: 24px;
+    margin: 22px 0 22px 0;
+  }
+  .service-icon-bg{
+    background-color: #EFF1F5;
+    width: 20%;
+    border-radius: 30% 70% 70% 30%/30% 50% 50% 30%;
+  }
+  .service-child h4{
+    font-weight: 400;
+  }
+  .service1-active{
+    background-color: #F9FAFC;
+    /* min-height: 250px; */
+    border-radius: 78% 22% 22% 78%/50% 22% 22% 50%;
+  }
+  .service-child{
+    padding: 70px 20px 70px 20px;
+  }
+  .feature-main{
+    background-color: #FBFBFB;
+  }
+  .feature-text{
+    padding-top: 80px;
+  }
+  .feature1 img{
+    width: 100%;
+    min-height: 250px;
+    border-radius: 5px;
+  }
+  .feature-drop{
+    padding: 50px 0 50px 0;
+  }
+  .build{
+    min-height: 400px;
+    width: 80%;
+    background: linear-gradient(90deg,#2753ff 0,#a369ff);;
+  }
+  .build-text{
+    padding-top: 100px;
+  }
+  .build-text h2{
+    color: #fff;
+  }
+  .build-text p{
+    color: #fff;
+  }
+  .btn3{
+    font-size: 18px !important;
+    font-weight: 500 !important;
+    background-color: #fff !important;
+    color: #2753ff !important;
+    border-radius: 3px !important;
+    padding: 8px 35px 8px 35px !important;
+  }
+  .pricing1{
+    margin-top: 30px;
+  }
+  .pricing-main{
+    padding-top: 50px;
+    padding-bottom: 50px;
+  }
+  .pricing2{
+    padding: 30px 20px 30px 20px;
+    line-height: 30px;
+  }
+  .pricing2 p{
+    font-size: 17px;
+  }
+  .pricing-icon-bg{
+    background-color: #EFF1F5;
+    width: 20%;
+    border-radius: 5px;
+  }
+  .icon2{
+    font-size: 30px;
+    margin: 15px 0 15px 0;
+    color: #2753ff;
+  }
+  .footer-main{
+    background-image: url('/footer-bg.7c1b5945.png');
+    /* background-size: cover; */
+    min-height: 320px;
+    background-color: #29344a;
+  }
+  .footer-child{
+    padding-top: 40px;
+    padding-bottom: 30px;
+  }
+  .icon3{
+    font-size: 30px;
+    color: #fff;
+  }
+  .footer-child p{
+    font-size: 22px;
+    letter-spacing: 2px;
+  }
+  .social-icon{
+    font-size: 24px;
+    margin-right: 10px;
+    color: #F9FAFC;
+  }
+  .social-icon:hover{
+    color: #2753ff;
+    cursor: pointer;
+  }
+  @media only screen and (max-width: 600px) {
+    .hero-text h2{
+      color: #29344a;
+      margin-top: 50px;
+    }
+    .feature-text{
+      padding-top: 20px;
+    }
+  }
