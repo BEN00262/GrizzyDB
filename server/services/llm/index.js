@@ -30,7 +30,7 @@ class GrizzyLLM {
      * @param {string[]} dialects
      */
     async generate_sample_data_templates(dialects = []) {
-        const template = `You are an experienced database adminstrator having used the different databases for a lot of years. Using your experience please generate ${dialects.join(", ")} optimized sql statements to bootstrap a database. Also generate sample data to be inserted into the generated database. The generated database and data should demonstrate relationships between the different tables. Only return the sql statements, no explanations. The response format should be an array of objects with the following format:
+        const template = `You are an experienced database adminstrator having used ${dialects.join(", ")} databases for a lot of years. Using your experience please generate ${dialects.join(", ")} optimized sql statements to bootstrap tables within a sample database. Also generate sample data to be inserted into the generated database. The generated database and data should demonstrate relationships between the different tables. Only return the sql statements, no explanations. The response format should be an array of objects with the following format:
 
         {
             dialect: string, // e.g mysql
@@ -44,7 +44,7 @@ class GrizzyLLM {
                 role: "user", 
                 content: template
             }],
-            temperature: 0,
+            temperature: 1,
             max_tokens: 14385 /* 2k short */
         });
 
@@ -59,11 +59,11 @@ class GrizzyLLM {
      * @param {string[]} dialects
      */
     async generate_sample_data_for_schema(schema, dialects = []) {
-        const template = `You are an experienced database adminstrator having used ${dialects.join(", ")} databases for a lot of years. Using your experience please generate ${dialects.join(", ")} optimized sql statements to bootstrap a simple database described by the schema provided below. Convert the schema provided to fit each of the stated dialects. Please respect any inter table relationships if any. Only return the sql statements for the data to insert, no explanations.The response format should be an array of objects with the following format:
+        const template = `You are an experienced database adminstrator having used ${dialects.join(", ")} databases for a lot of years. Using your experience please generate sample data with a minimum of 11 rows to be used as a seed for the databases as defined by the schema provided below. Please respect any inter table relationships if any. Only return the sql statements for the data to insert, no explanations.The response format should be an array of objects with the following format:
 
         {
             dialect: string, // e.g mysql
-            sql_statements: string, // generated sql statement
+            sql_statements: string, // generated sql statement which is a combination of all generated sql statements for a given dialect e.g all sql statements for mysql. This should a string of all of the statements
         }
         
         SQL SCHEMA
@@ -80,6 +80,8 @@ class GrizzyLLM {
             temperature: 0,
             max_tokens: 14385 /* 2k short */
         });
+
+        // console.log(chatCompletion?.data?.choices?.[0]?.message?.content);
 
         return findAndParseJsonLikeText(chatCompletion?.data?.choices?.[0]?.message?.content);
     }
@@ -119,31 +121,18 @@ class GrizzyLLM {
 //     const GrizzyLLMInstance = new GrizzyLLM();
 
 //     // testing the ability of gpt to generate random db schemas with data
-//     console.log(
-//         await GrizzyLLMInstance.generate_sample_data_templates(["mysql", "postgres", "mariadb"])
-//     )
+//     // console.log(
+//     //     await GrizzyLLMInstance.generate_sample_data_templates(["mysql", "postgres", "mariadb"])
+//     // )
 
 //     // testing ability of gpt to understand a schema and generate sample data that fits the schema
-//     // console.log(
-//     //     await GrizzyLLMInstance.generate_sample_data_for_schema(
-//     //         `-- Create tables
-//     //         CREATE TABLE users (
-//     //             id INT AUTO_INCREMENT PRIMARY KEY,
-//     //             name VARCHAR(50),
-//     //             email VARCHAR(100)
-//     //         );
+//     console.log(
+//         await GrizzyLLMInstance.generate_sample_data_for_schema(
+//             `CREATE TABLE users (id INT AUTO_INCREMENT PRIMARY KEY, name VARCHAR(50), email VARCHAR(50)); CREATE TABLE orders (id INT AUTO_INCREMENT PRIMARY KEY, user_id INT, product VARCHAR(50), FOREIGN KEY (user_id) REFERENCES users(id));`,
             
-//     //         CREATE TABLE cars (
-//     //             id INT AUTO_INCREMENT PRIMARY KEY,
-//     //             make VARCHAR(50),
-//     //             model VARCHAR(50),
-//     //             user_id INT,
-//     //             FOREIGN KEY (user_id) REFERENCES users(id)
-//     //         );`,
-            
-//     //         ["mysql", "postgres", "mssql"]
-//     //     )
-//     // )
+//             ["mariadb"]
+//         )
+//     )
 
 // })()
 

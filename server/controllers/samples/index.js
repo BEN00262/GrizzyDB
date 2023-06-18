@@ -9,12 +9,9 @@ export class SamplesController {
     // this will be created by chagpt
     static async create_samples(req,res) {
         try {
-            // call gpt to do the generation here
             const generated_data = await GrizzyLLMInstance.generate_sample_data_templates(
                 SUPPORTED_DIALECTS
             );
-
-            // verify the output
 
             // save the different samples
             await SampleModel.insertMany(generated_data.map(x => {

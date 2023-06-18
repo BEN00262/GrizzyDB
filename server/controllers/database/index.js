@@ -33,9 +33,12 @@ export class DatabaseController {
 
                 case 'custom':
                     await GrizzyDatabaseEngine.push_schema_and_data_to_database(
-                        await GrizzyLLMInstance.generate_sample_data_for_schema(
+                        `${custom_schema_template}
+                        
+                        ${(await GrizzyLLMInstance.generate_sample_data_for_schema(
                             custom_schema_template, [dialect]
-                        ), 
+                        ))?.[0]?.sql_statements}
+                        `, 
                         dialect, credentials
                     );    
 
