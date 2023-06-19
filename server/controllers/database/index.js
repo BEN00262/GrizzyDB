@@ -11,7 +11,7 @@ export class DatabaseController {
                 custom_schema_template, selected_template 
             } = req.body;
 
-            const credentials = await GrizzyDatabaseEngine.provision_database();
+            const credentials = await GrizzyDatabaseEngine.provision_database(dialect);
 
             // save the credentials
             const database = await DatabaseModel.create({

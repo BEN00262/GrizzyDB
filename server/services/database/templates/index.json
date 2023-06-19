@@ -1,0 +1,8 @@
+{
+    "mariadb": [
+        "CREATE DATABASE IF NOT EXISTS {{database_name}};",
+        "CREATE USER '{{database_user}}'@'%' IDENTIFIED BY '{{random_password}}';",
+        "GRANT ALL PRIVILEGES ON {{database_name}}.* TO '{{database_user}}'@'%';",
+        "FLUSH PRIVILEGES;"
+    ]
+}

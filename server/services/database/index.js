@@ -10,12 +10,15 @@ import mariadb from 'mariadb';
 import { Sequelize } from 'sequelize';
 import { identify } from 'sql-query-identifier';
 import { json2csv } from 'json-2-csv';
+import handlebars from 'handlebars';
 import { GrizzyDBException } from '../../utils/index.js';
 import { getDBSchemas } from '../../utils/generate_db_ui_schema.js';
 
+import schemas from './templates/index.json' assert { type: "json" };
+
 export class GrizzyDatabaseEngine {
     // max size and everything in between
-    static async provision_database() {
+    static async provision_database(dialect) {
         const database_name = cryptoRandomString({ 
             length: 15,
             type: "distinguishable"
@@ -28,20 +31,33 @@ export class GrizzyDatabaseEngine {
             type: 'distinguishable',
         });
 
-        const connection = await (mariadb.createPool({
-            host: process.env.MASTER_DB_URI,
-            // ssl: true,
-            password: process.env.MASTER_DB_PASSWORD,
-            user: process.env.MASTER_DB_USERNAME,
-            connectionLimit: 1,
-            port: 3306
-        })).getConnection();
+        const statements = schemas[dialect.toLowerCase()];
+
+        if (Array.isArray(statements)) {
+            const sequelize = new Sequelize({
+                host: process.env.MASTER_DB_URI,
+                username: process.env.MASTER_DB_USERNAME,
+                password: process.env.MASTER_DB_PASSWORD,
+                logging: false,
+                dialect, /* one of 'mysql' | 'postgres' | 'sqlite' | 'mariadb' | 'mssql' | 'db2' | 'snowflake' | 'oracle' */
+            });
+    
+            for (const statement of statements) {
+                await sequelize.query(
+                    handlebars.compile(statement)({
+                        database_name,
+                        database_user,
+                        random_password
+                    })
+                );
+            }
+        }
 
         
 
-        await connection.query(
-            `CREATE DATABASE IF NOT EXISTS ${database_name};`
-        );
+        // await connection.query(
+        //     `CREATE DATABASE IF NOT EXISTS ${database_name};`
+        // );
 
         // TODO: research more on this
         // await connection.query(
@@ -92,19 +108,19 @@ export class GrizzyDatabaseEngine {
         //     END;`
         // );
 
-        await connection.query(
-            `CREATE USER '${database_user}'@'%' IDENTIFIED BY '${random_password}';`
-        );
+        // await connection.query(
+        //     `CREATE USER '${database_user}'@'%' IDENTIFIED BY '${random_password}';`
+        // );
 
-        await connection.query(
-            `GRANT ALL PRIVILEGES ON ${database_name}.* TO '${database_user}'@'%';`
-        );
+        // await connection.query(
+        //     `GRANT ALL PRIVILEGES ON ${database_name}.* TO '${database_user}'@'%';`
+        // );
 
-        await connection.query(
-            `FLUSH PRIVILEGES;`
-        );
+        // await connection.query(
+        //     `FLUSH PRIVILEGES;`
+        // );
 
-        await connection.end();
+        // await connection.end();
 
         return {
             DB_NAME: database_name,
@@ -118,8 +134,6 @@ export class GrizzyDatabaseEngine {
      * @param {string} schema_and_data 
      */
     static async push_schema_and_data_to_database(schema_and_data, dialect, credentials = {}) {
-        console.log(schema_and_data)
-        
         const statements = identify(schema_and_data.replace(/USE\s+\w+;?\n*/i, ''));
 
         const sequelize = new Sequelize(credentials.DB_NAME, credentials.DB_USER, credentials.DB_PASSWORD, {
@@ -218,10 +232,10 @@ export class GrizzyDatabaseEngine {
     }
 }
 
-// ;(async () => {
-//     console.log(
-//         await GrizzyDatabaseEngine.provision_database()
-//     );
+;(async () => {
+    console.log(
+        await GrizzyDatabaseEngine.provision_database("mariadb")
+    );
 
-//     console.log("We are done")
-// })();
+    console.log("We are done")
+})();
