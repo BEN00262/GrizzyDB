@@ -6,15 +6,13 @@ DotEnv.config({
 })
 
 import cryptoRandomString from 'crypto-random-string';
-import mariadb from 'mariadb';
 import { Sequelize } from 'sequelize';
 import { identify } from 'sql-query-identifier';
 import { json2csv } from 'json-2-csv';
 import handlebars from 'handlebars';
 import { GrizzyDBException } from '../../utils/index.js';
 import { getDBSchemas } from '../../utils/generate_db_ui_schema.js';
-
-import schemas from './templates/index.json' assert { type: "json" };
+import { templates } from './templates/index.js';
 
 export class GrizzyDatabaseEngine {
     // max size and everything in between
@@ -31,9 +29,9 @@ export class GrizzyDatabaseEngine {
             type: 'distinguishable',
         });
 
-        const statements = schemas[dialect.toLowerCase()];
+        const template = templates[dialect.toLowerCase()];
 
-        if (Array.isArray(statements)) {
+        if (template) {
             const sequelize = new Sequelize({
                 host: process.env.MASTER_DB_URI,
                 username: process.env.MASTER_DB_USERNAME,
@@ -42,7 +40,7 @@ export class GrizzyDatabaseEngine {
                 dialect, /* one of 'mysql' | 'postgres' | 'sqlite' | 'mariadb' | 'mssql' | 'db2' | 'snowflake' | 'oracle' */
             });
     
-            for (const statement of statements) {
+            for (const statement of (template.setup ?? [])) {
                 await sequelize.query(
                     handlebars.compile(statement)({
                         database_name,
@@ -51,76 +49,35 @@ export class GrizzyDatabaseEngine {
                     })
                 );
             }
+
+            await sequelize.close();
+
+            // execute any triggers found
+            /*
+            if (Array.isArray(template.triggers) && template.triggers.length) {
+                const sequelize = new Sequelize({
+                    host: process.env.MASTER_DB_URI,
+                    username: database_user,
+                    database: database_name,
+                    password: random_password,
+                    logging: false,
+                    dialect, // one of 'mysql' | 'postgres' | 'sqlite' | 'mariadb' | 'mssql' | 'db2' | 'snowflake' | 'oracle'
+                });
+
+                for (const statement of template.triggers) {
+                    await sequelize.query(
+                        handlebars.compile(statement)({
+                            database_name,
+                            database_user,
+                            random_password
+                        })
+                    );
+                }                
+
+                await sequelize.close();
+            }*/
+
         }
-
-        
-
-        // await connection.query(
-        //     `CREATE DATABASE IF NOT EXISTS ${database_name};`
-        // );
-
-        // TODO: research more on this
-        // await connection.query(
-            // `CREATE TRIGGER CheckDatabaseSizeFor${database_name}
-            // BEFORE INSERT ON ${database_name}.*
-            // FOR EACH ROW
-            // BEGIN
-            //     DECLARE MaxAllowedSizeMB INT;
-            //     DECLARE CurrentSizeMB INT;
-            
-            //     SELECT MaxSizeMB INTO MaxAllowedSizeMB
-            //     FROM ${database_name}.MaxAllowedSize
-            //     WHERE DatabaseName = DATABASE();
-            
-            //     SELECT SUM(data_length + index_length) INTO CurrentSizeMB
-            //     FROM information_schema.TABLES
-            //     WHERE table_schema = DATABASE();
-            
-            //     IF CurrentSizeMB > MaxAllowedSizeMB THEN
-            //         -- Rollback the insertion and display an error message
-            //         SIGNAL SQLSTATE '45000'
-            //             SET MESSAGE_TEXT = 'Database size exceeds the allowed limit. Data insertion not permitted.';
-            //     END IF;
-            // END;`
-        // );
-
-        // await connection.query(
-        //     `CREATE TRIGGER CheckDatabaseSizeFor${database_name}
-        //     BEFORE UPDATE ON ${database_name}.*
-        //     FOR EACH ROW
-        //     BEGIN
-        //         DECLARE MaxAllowedSizeMB INT;
-        //         DECLARE CurrentSizeMB INT;
-            
-        //         SELECT MaxSizeMB INTO MaxAllowedSizeMB
-        //         FROM ${database_name}.MaxAllowedSize
-        //         WHERE DatabaseName = DATABASE();
-            
-        //         SELECT SUM(data_length + index_length) INTO CurrentSizeMB
-        //         FROM information_schema.TABLES
-        //         WHERE table_schema = DATABASE();
-            
-        //         IF CurrentSizeMB > MaxAllowedSizeMB THEN
-        //             -- Rollback the insertion and display an error message
-        //             SIGNAL SQLSTATE '45000'
-        //                 SET MESSAGE_TEXT = 'Database size exceeds the allowed limit. Data insertion not permitted.';
-        //         END IF;
-        //     END;`
-        // );
-
-        // await connection.query(
-        //     `CREATE USER '${database_user}'@'%' IDENTIFIED BY '${random_password}';`
-        // );
-
-        // await connection.query(
-        //     `GRANT ALL PRIVILEGES ON ${database_name}.* TO '${database_user}'@'%';`
-        // );
-
-        // await connection.query(
-        //     `FLUSH PRIVILEGES;`
-        // );
-
-        // await connection.end();
 
         return {
             DB_NAME: database_name,
@@ -232,10 +189,10 @@ export class GrizzyDatabaseEngine {
     }
 }
 
-;(async () => {
-    console.log(
-        await GrizzyDatabaseEngine.provision_database("mariadb")
-    );
+// ;(async () => {
+//     console.log(
+//         await GrizzyDatabaseEngine.provision_database("mariadb")
+//     );
 
-    console.log("We are done")
-})();
+//     console.log("We are done")
+// })();
