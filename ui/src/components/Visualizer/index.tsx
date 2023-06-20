@@ -1,48 +1,55 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import ReactFlow, {
-  Node, useNodesState, useEdgesState,
-  Controls, ControlButton, Background, useStoreApi, ReactFlowProvider,
-  getConnectedEdges, OnSelectionChangeParams, NodeChange, getIncomers,
-  getOutgoers, ReactFlowInstance
+  Background,
+  ControlButton,
+  Controls,
+  Node,
+  NodeChange,
+  OnSelectionChangeParams,
+  ReactFlowInstance,
+  ReactFlowProvider,
+  getConnectedEdges,
+  getIncomers,
+  getOutgoers,
+  useEdgesState,
+  useNodesState,
+  useStoreApi
 } from "reactflow";
 
 import { nodeTypes } from "../config/nodeTypes";
 
 import {
-  MaximizeIcon,
-  MinimizeIcon,
-  InfoIcon,
   InfoPopup,
-  Markers
+  Markers,
+  MaximizeIcon,
+  MinimizeIcon
 } from "./components";
 
 import {
+  calculateEdges,
+  calculateSourcePosition,
+  calculateTargetPosition,
   edgeClassName,
   edgeMarkerName,
-  calculateTargetPosition,
-  calculateSourcePosition,
   initializeNodes,
-  moveSVGInFront,
-  setHighlightEdgeClassName,
   logTablePositions,
+  moveSVGInFront,
   setEdgeClassName,
-  loadDatabases,
-  calculateEdges
+  setHighlightEdgeClassName
 } from "./helpers";
 
 import {
-  EdgeConfig,
-  DatabaseConfig
+  DatabaseConfig,
+  EdgeConfig
 } from "./types";
 
 // this is important! You need to import the styles from the lib to make it work
-import "reactflow/dist/style.css";
-import "./Style";
-import DatabaseIcon from "./components/DatabaseIcon";
-import { DatabaseMenuPopup } from "./components/DatabaseMenuPopup";
-import { useActiveDatabase } from "../../hooks";
-import { get_database_schema } from "./api";
 import { useQuery } from "react-query";
+import "reactflow/dist/style.css";
+import { useActiveDatabase } from "../../hooks";
+import "./Style";
+import { get_database_schema } from "./api";
+import { DatabaseMenuPopup } from "./components/DatabaseMenuPopup";
 
 interface FlowProps {
   currentDatabase: DatabaseConfig;
