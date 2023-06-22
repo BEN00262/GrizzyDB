@@ -75,12 +75,12 @@ const EditorTabs: React.FC<{
 }
 
 function generate_columns_from_row_data(row: {[key: string]: any}) {
-    return Object.keys(row).map(key => ({
-        field: key,
-        headerName: key,
-        width: 150,
-        editable: false,
-    }))
+  return Object.keys(row).map(key => ({
+    field: key,
+    headerName: key,
+    width: 150,
+    editable: false,
+  }));
 }
   
 // this gets a query and the mode to send to the backend and then sends
@@ -104,9 +104,14 @@ const DBDataGrid: React.FC<IDBQuery> = ({ query, mode }) => {
         });
     }, {
         onSuccess: data => {
+          const has_id = Object.keys(data?.[0] ?? {}).includes('id');
+
             setGridData({
                 columns: data ? generate_columns_from_row_data(data[0]) : [],
-                rows: data ?? []
+                rows: (data ?? []).map((x, position) => ({
+                  ...x,
+                  ...(has_id ? {} : { id: position + 1 })
+                }))
             })
         }
     })
