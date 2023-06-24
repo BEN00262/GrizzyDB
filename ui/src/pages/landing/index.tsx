@@ -133,6 +133,10 @@ function LabTabs() {
     },
   })
 
+  if (!databases || !databases.length) {
+    return null;
+  }
+
   return (
     <Box sx={{ width: '100%', border: "1px solid #d3d3d3", background: "white", typography: 'body1', borderRadius: "2px" }}>
       <TabContext value={value}>
