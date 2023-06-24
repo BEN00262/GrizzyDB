@@ -212,7 +212,11 @@ export class DatabaseController {
                             isHidden: key?.toLowerCase()?.includes('password')
                         }
                     ] 
-                }, [])
+                }, [{
+                    credentialKey: 'HOST',
+                    value: process.env.MASTER_DB_URI,
+                    isHidden: false
+                }])
             }));
 
             return massage_response({ databases }, res);

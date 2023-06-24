@@ -5,6 +5,7 @@ import Button from '@mui/material/Button';
 import { useState } from 'react';
 import ProvisionModal from './Provision';
 import StorageIcon from '@mui/icons-material/Storage';
+import { TypeAnimation } from 'react-type-animation';
 
 function Hero() {
     const [isProvisionModalopen, setIsProvisionModalOpen] = useState(false);
@@ -18,17 +19,34 @@ function Hero() {
                 />
                 <Row>
                     <Col className='pb-3' style={{
-                        marginTop: "250px",
+                        marginTop: "100px",
                         display: "flex",
-                        flexDirection: "row",
+                        flexDirection: "column",
                         justifyContent: "center",
-                        alignItems: "center"
+                        alignItems: "center",
+                        gap: "40px"
                     }}>
+                        <div style={{ textAlign: "center" }}>
+                            <h1 className='action-text' style={{
+                                letterSpacing: "2px"
+                            }}>
+                                <TypeAnimation
+                                    sequence={["Free Ephemeral Relational Databases for all your testing needs"]}
+                                    wrapper="span"
+                                    speed={30}
+                                    cursor={false}
+                                />
+                            </h1>
+                            <h5 className='action-text'>Be up and running in less than a minute</h5>
+                        </div>
+
                         <Button 
-                            variant="contained"
+                            variant="outlined"
                             style={{
-                                color: "white",
-                                backgroundColor: "black",
+                                color: "black",
+                                fontWeight: "bold",
+                                letterSpacing: "2px",
+                                // backgroundColor: "black",
                                 border: "1px solid #000"
                             }}
                             endIcon={<StorageIcon />}

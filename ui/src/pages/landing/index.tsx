@@ -20,18 +20,19 @@ import { delete_database, get_my_databases } from "./api";
 import SQLEditorComp from "./components/PopupEditor";
 import { initialize_databases, remove_database, switch_active_database, useGrizzyDBDispatch, useGrizzyDBState } from "../../context";
 import { useActiveDatabase } from "../../hooks";
+import { Col, Container, Row } from "react-bootstrap";
 
 
 const Credential: React.FC<ICredential> = ({
-    credentialKey, value, isHidden
+    credentialKey, value
 }) => {
     return (
         <TableRow
             key={credentialKey}
             sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
         >
-            <TableCell component="th" scope="row">{credentialKey}</TableCell>
-            <TableCell>{isHidden ? "********" : value}</TableCell>
+            <TableCell component="th" scope="row"><b>{credentialKey.replace("DB_", "")}</b></TableCell>
+            <TableCell>{value}</TableCell>
         </TableRow>
     );
 }
@@ -61,13 +62,6 @@ function Credentials({ credentials }: { credentials: ICredential[] }) {
                                 )
                             })
                         }
-
-                        {/* built on the fly */}
-                        <Credential
-                            credentialKey="CONNECTION STRING"
-                            value="mongodb://localhost:27017/juma-sample-db"
-                            isHidden={false}
-                        />
                     </TableBody>
                 </Table>
             </TableContainer>
@@ -75,7 +69,7 @@ function Credentials({ credentials }: { credentials: ICredential[] }) {
     );
 }
 
-function ProvisionedDB({ credentials }: IDatabaseDisplay) {
+function ProvisionedDB({ credentials, dialect }: IDatabaseDisplay) {
     const dispatch = useGrizzyDBDispatch();
     const { active_database } = useActiveDatabase();
 
@@ -87,32 +81,36 @@ function ProvisionedDB({ credentials }: IDatabaseDisplay) {
 
 
     return (
-        <div style={{
-            display: "flex",
-            flexDirection: "row"
-        }}>
+        <Container>
+            <Row>
+                <Col xs={12} sm={4}>
+                <div style={{
+                        borderRight: "1px solid #efefef",
+                        height: "400px",
+                        flex: 1,
+                        display: "flex",
+                        flexDirection: "column",
+                        justifyContent: "center",
+                        boxSizing: "border-box",
+                        padding: "10px",
+                        gap: "4px"
+                    }}>
+                        <h2 className='action-text' style={{
+                            letterSpacing: "1px"
+                        }}>{dialect}</h2>
+                        <Credentials credentials={credentials} />
+                        <SQLEditorComp/>
+                        <LoadingButton variant="outlined" loading={handleDeleteDB.isLoading} onClick={() => handleDeleteDB.mutate()} size="small" color="error" style={{
+                            width: "80%"
+                        }}>delete</LoadingButton>
+                    </div>
+                </Col>
 
-            <div style={{
-                borderRight: "1px solid #efefef",
-                height: "400px",
-                flex: 1,
-                display: "flex",
-                flexDirection: "column",
-                boxSizing: "border-box",
-                padding: "10px",
-                gap: "4px"
-            }}>
-                <Credentials credentials={credentials} />
-                <SQLEditorComp/>
-                <LoadingButton variant="outlined" loading={handleDeleteDB.isLoading} onClick={() => handleDeleteDB.mutate()} size="small" color="error" style={{
-                    width: "80%"
-                }}>delete</LoadingButton>
-            </div>
-
-            <div style={{ flex: 4 }}>
-                <Visualizer database={"ecommerce"} />
-            </div>
-        </div>
+                <Col xs={12} sm={8}>
+                    <Visualizer database={"ecommerce"} />
+                </Col>
+            </Row>
+        </Container>
     );
 }
 
@@ -129,20 +127,24 @@ function LabTabs() {
 
   useQuery(['my-databases'], get_my_databases, {
     refetchOnWindowFocus: false,
-    staleTime: 30 * 1000 * 60, // 30 mins
+    refetchOnMount: true,
     onSuccess: data => {
         initialize_databases(dispatch, data)
     },
   })
 
   return (
-    <Box sx={{ width: '100%', typography: 'body1' }}>
+    <Box sx={{ width: '100%', border: "1px solid #d3d3d3", background: "white", typography: 'body1', borderRadius: "2px" }}>
       <TabContext value={value}>
         <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
           <TabList onChange={handleChange} scrollButtons aria-label="lab API tabs example">
             {
                 databases.map((database, position) => {
-                    return <Tab label={database.name} value={position.toString()} key={position}/>
+                    return <Tab 
+                        label={database.name} 
+                        value={position.toString()} 
+                        key={position}
+                    />
                 })
             }
           </TabList>
@@ -167,25 +169,36 @@ const LandingPage = () => {
             <div style={{
                 position: "absolute",
                 boxSizing: "border-box",
-                padding: "20px"
+                width: "100%",
+                display: "flex",
+                flexDirection: "row",
+                justifyContent: "space-between",
+                alignItems: "center",
+                padding: "0px 10px",
             }}>
-                <h1 className="logo-text"><b>Grizzy DB</b></h1>
+                <img 
+                    src="/logo.png" 
+                    alt="Grizzy DB logo"
+                    style={{
+                        height: "100px",
+                        width: "100px",
+                        objectFit: "contain"
+                    }} 
+                />
+
+                <a href="https://www.producthunt.com/posts/grizzy-db?utm_source=badge-featured&utm_medium=badge&utm_souce=badge-grizzy&#0045;db" target="_blank"><img src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=400313&theme=light" alt="Grizzy&#0032;DB - quick&#0032;disposable&#0032;databases&#0032;for&#0032;all&#0032;your&#0032;testing&#0032;requirements | Product Hunt" style={{width: "250px",height: "45px"}}/></a>
             </div>
             <Hero/>
             <div style={{
                 zIndex: 2,
                 position: "absolute",
                 height: "500px",
-                border: "1px solid #000",
                 top: "420px",
-                left: "20%",
-                width: "60%",
-                background: "white",
-                borderRadius: "2px"
+                width: "100%"
             }}>
-                {/* provisioned dbs */}
-                <LabTabs/>
-
+                <Container>
+                    <LabTabs/>
+                </Container>
             </div>
         </div>
     );

@@ -20,6 +20,9 @@ import { useMemo } from 'react';
 import Radio from '@mui/material/Radio';
 import RadioGroup from '@mui/material/RadioGroup';
 import { add_database, useGrizzyDBDispatch } from '../../../context';
+import { isAxiosError } from 'axios';
+import PlayCircleFilledWhiteIcon from '@mui/icons-material/PlayCircleFilledWhite';
+import { GrizzyQueryClient } from '../../../App';
 
 const DBCard: React.FC<{
   database: IDatabase, 
@@ -54,7 +57,7 @@ const SampleDataEditor: React.FC<ISampleTemplate & {
 }> = ({ sql_statements, handleEditorChange }) => {
     return (
         <Editor 
-          height="350px" 
+          height="30vh" 
           defaultLanguage="sql" 
           value={sql_statements}
           onChange={handleEditorChange}
@@ -68,9 +71,9 @@ const YourSchemaEditor: React.FC<{
   return (
       <div style={{ border: '1px solid #efefef', boxSizing: 'border-box', padding: '10px' }}>
         <Editor 
-          height="350px" 
+          height="30vh" 
           defaultLanguage="sql" 
-          value='-- copy your sql schema and paste here. The data willn be generated using ChatGPT'
+          value='-- copy your sql schema and paste here. The data will be generated using ChatGPT'
           onChange={handleEditorChange}
         />
       </div>
@@ -96,7 +99,7 @@ function SampleDataTabs(
 
     useQuery(['database-data-templates'], get_available_sample_data_templates, {
       refetchOnWindowFocus: false,
-      staleTime: 30 * 1000 * 60, // 30 mins
+      refetchOnMount: true,
       onSuccess: data => {
         setSamples(data);
       },
@@ -121,7 +124,7 @@ function SampleDataTabs(
             <TabList onChange={handleChange} aria-label="lab API tabs example">
               {
                 samples.map((sample, position) => {
-                  return <Tab label={sample.name} value={`${position}`} key={position} />
+                  return <Tab label={sample.name} value={`${position + 1}`} key={position} />
                 })
               }
             </TabList>
@@ -129,7 +132,7 @@ function SampleDataTabs(
           {
             samples.map((sample, position) => {
               return (
-                <TabPanel value={`${position}`} key={position}>
+                <TabPanel value={`${position + 1}`} key={position}>
                   <SampleDataEditor 
                     {...sample} 
                     handleEditorChange={handleEditorChange}
@@ -170,7 +173,8 @@ const ProvisionModal: React.FC<{
 
   const [databases, setDatabases] = React.useState<IDatabase[]>([]);
   const dispatch = useGrizzyDBDispatch();
-  const [value, setValue] = React.useState('female');
+  const [value, setValue] = React.useState('none');
+  const [error, setError] = React.useState<Error | null>(null);
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const selected = (event.target as HTMLInputElement).value;
@@ -208,10 +212,28 @@ const ProvisionModal: React.FC<{
     });
   }
 
-  const handleProvisionRequest = useMutation(() => provision_database(databaseTemplate), {
+  const handleProvisionRequest = useMutation(async () => {
+    setError(null);
+
+    return provision_database(databaseTemplate);
+  }, {
     onSuccess: data => {
-      add_database(dispatch, data);
+      GrizzyQueryClient.invalidateQueries(['my-databases'])
       handleClose();
+    },
+
+    onError: (error: Error) => {
+      if (isAxiosError(error)) {
+        setError(
+          new Error(
+            error.response?.data?.data?.errors?.join("\n")
+          )
+        )
+
+        return;
+      }
+
+      setError(error);
     }
   });
 
@@ -256,9 +278,15 @@ const ProvisionModal: React.FC<{
                     value={value}
                     onChange={handleChange}
                   >
-                    <FormControlLabel className='select-radio' value="none" control={<Radio checked={databaseTemplate.selected_template === 'none'}/>} label="Clean database" />
-                    <FormControlLabel className='select-radio' value="sample" control={<Radio checked={databaseTemplate.selected_template === 'sample'}/>} label="Use sample data" />
-                    <FormControlLabel className='select-radio' value="custom" control={<Radio checked={databaseTemplate.selected_template === 'custom'}/>} label="Import your database schema" />
+                    <FormControlLabel className='select-radio' value="none" control={<Radio checked={databaseTemplate.selected_template === 'none'}/>} label={
+                      <span className="action-text">Start with a clean database</span>
+                    } />
+                    <FormControlLabel className='select-radio' value="sample" control={<Radio checked={databaseTemplate.selected_template === 'sample'}/>} label={
+                      <span className="action-text">Use sample schema and data</span>
+                    } />
+                    <FormControlLabel className='select-radio' value="custom" control={<Radio checked={databaseTemplate.selected_template === 'custom'}/>} label={
+                      <span className="action-text">Import your database schema</span>
+                    } />
                 </RadioGroup>
                 </div>
 
@@ -277,6 +305,15 @@ const ProvisionModal: React.FC<{
                     handleSampleDataChange={handleSampleDataChange}
                   /> : null }
             </div>
+
+            {
+              error ?
+              <Alert style={{
+                marginTop: "20px",
+                marginBottom: "10px"
+              }} severity="error">{error.message}</Alert>
+              : null 
+            }
             
             <div style={{
               display: "flex",
@@ -286,8 +323,9 @@ const ProvisionModal: React.FC<{
               marginTop: "10px"
             }}>
                 <LoadingButton 
-                  variant="outlined" loading={handleProvisionRequest.isLoading} 
+                  variant="outlined" size="small" loading={handleProvisionRequest.isLoading} 
                   onClick={() => handleProvisionRequest.mutate()}
+                  startIcon={<PlayCircleFilledWhiteIcon/>}
                 >Provision</LoadingButton>
             </div>
 

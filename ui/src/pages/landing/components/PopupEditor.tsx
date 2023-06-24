@@ -13,6 +13,8 @@ import { IDBQuery } from '../../../context/types';
 import { useActiveDatabase } from '../../../hooks';
 import { query_database } from './api';
 import { useMutation } from 'react-query';
+import Alert from '@mui/material/Alert';
+import { isAxiosError } from 'axios';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -90,9 +92,13 @@ const DBDataGrid: React.FC<IDBQuery> = ({ query, mode }) => {
         rows: any[]
     }>({ columns: [], rows: [] });
 
+    const [error, setError] = React.useState<Error | null>(null);
+
     const { active_database } = useActiveDatabase();
 
     const handleQueryDatabase = useMutation(async () => {
+      setError(null);
+
         // check if the query is empty
         if (!query) {
             return;
@@ -113,11 +119,33 @@ const DBDataGrid: React.FC<IDBQuery> = ({ query, mode }) => {
                   ...(has_id ? {} : { id: position + 1 })
                 }))
             })
+        },
+
+        onError: (error: Error) => {
+          if (isAxiosError(error)) {
+            setError(
+              new Error(
+                error.response?.data?.data?.errors?.join("\n")
+              )
+            )
+
+            return;
+          }
+
+          setError(error);
         }
     })
 
     return (
         <>
+            {
+              error ?
+              <Alert style={{
+                marginBottom: "20px"
+              }} severity="error">{error.message}</Alert>
+              : null 
+            }
+
             <LoadingButton
                 onClick={() => handleQueryDatabase.mutate()} 
                 variant="outlined" size="small" 
