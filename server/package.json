@@ -22,6 +22,7 @@
     "handlebars": "^4.7.7",
     "json-2-csv": "^4.0.0",
     "json-like-parse": "^1.0.3",
+    "json-to-pretty-yaml": "^1.2.2",
     "langchain": "^0.0.95",
     "mariadb": "^3.1.2",
     "moment": "^2.29.4",
@@ -31,9 +32,12 @@
     "openai": "^3.3.0",
     "pg": "^8.11.0",
     "pg-hstore": "^2.3.4",
+    "pluralize": "^8.0.0",
+    "radix-router": "^3.0.1",
     "sequelize": "^6.32.1",
     "sequelize-auto": "^0.8.8",
     "sql-query-identifier": "^2.5.0",
-    "typeorm": "^0.3.16"
+    "typeorm": "^0.3.16",
+    "vm2": "^3.9.19"
   }
 }
