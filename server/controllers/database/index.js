@@ -1,4 +1,4 @@
-import { DatabaseModel } from "../../models/index.js";
+import { DatabaseModel, DatabaseProvisionModel } from "../../models/index.js";
 import { GrizzyDatabaseEngine, GrizzyLLMInstance } from "../../services/index.js";
 import { GrizzyDBException, massage_error, massage_response } from "../../utils/index.js";
 import CryptoJS from "crypto-js";
@@ -10,6 +10,14 @@ export class DatabaseController {
                 dialect, sample_data_template, 
                 custom_schema_template, selected_template 
             } = req.body;
+
+            // let already_provisioned_databases = await DatabaseModel.count({
+            //     owner: req.user._id
+            // });
+
+            // if (already_provisioned_databases >= 3) {
+            //     throw new GrizzyDBException("You are only limited to a max of 3 databases on the BETA version");
+            // }
 
             const credentials = await GrizzyDatabaseEngine.provision_database(dialect);
 
@@ -141,24 +149,8 @@ export class DatabaseController {
     static async get_available_databases(req, res) {
         try {
 
-            // have a static list for now
-            const databases = [
-                {
-                  dialect: "postgres",
-                  enabled: false,
-                  logo: "https://wiki.postgresql.org/images/thumb/a/a4/PostgreSQL_logo.3colors.svg/116px-PostgreSQL_logo.3colors.svg.png"
-                },
-                {
-                  dialect: "mariadb",
-                  enabled: true,
-                  logo: "https://mariadb.com/wp-content/webp-express/webp-images/doc-root/wp-content/uploads/2019/11/mariadb-logo_black-transparent-300x75.png.webp"
-                },
-                {
-                  dialect: "mysql",
-                  enabled: false,
-                  logo: "https://www.mysql.com/common/logos/powered-by-mysql-88x31.png"
-                }
-            ];
+            const databases = await DatabaseProvisionModel.find()
+                .lean();
 
             return massage_response({ databases }, res);
         } catch (error) {
@@ -214,7 +206,7 @@ export class DatabaseController {
                     ] 
                 }, [{
                     credentialKey: 'HOST',
-                    value: process.env.MASTER_DB_URI,
+                    value: GrizzyDatabaseEngine.get_rds_uri(rest.dialect),
                     isHidden: false
                 }])
             }));

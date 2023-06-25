@@ -15,68 +15,93 @@ import { getDBSchemas } from '../../utils/generate_db_ui_schema.js';
 import { templates } from './templates/index.js';
 
 export class GrizzyDatabaseEngine {
+
+    static get_rds_uri(dialect) {
+        switch (dialect) {
+            case 'mariadb':
+                return process.env.MASTER_MARIADB_URI;
+            case 'postgres':
+                return process.env.MASTER_POSTGRES_URI;
+            case 'mysql':
+                return process.env.MASTER_MYSQL_URI;
+            default:
+                throw new GrizzyDBException("Unsupported dialect");
+        }
+    }
+
+    static get_database_factory(dialect) {
+        let credentials = {};
+
+        switch (dialect) {
+            case 'mariadb':
+                credentials = {
+                    host: process.env.MASTER_MARIADB_URI,
+                    username: process.env.MASTER_MARIADB_USERNAME,
+                    password: process.env.MASTER_MARIADB_PASSWORD,
+                }
+
+                break;
+            case 'postgres':
+                credentials = {
+                    host: process.env.MASTER_POSTGRES_URI,
+                    username: process.env.MASTER_POSTGRES_USERNAME,
+                    password: process.env.MASTER_POSTGRES_PASSWORD,
+                }
+
+                break;
+            case 'mysql':
+                credentials = {
+                    host: process.env.MASTER_MYSQL_URI,
+                    username: process.env.MASTER_MYSQL_USERNAME,
+                    password: process.env.MASTER_MYSQL_PASSWORD,
+                }
+
+                break;
+            default:
+                throw new GrizzyDBException("Unsupported dialect");
+        }
+
+        return new Sequelize({
+            ...credentials,
+            logging: false,
+            dialect, /* one of 'mysql' | 'postgres' | 'sqlite' | 'mariadb' | 'mssql' | 'db2' | 'snowflake' | 'oracle' */
+        })
+    }
+
     // max size and everything in between
     static async provision_database(dialect) {
-        const database_name = cryptoRandomString({ 
+        const database_name = `GRIZZY_DB_${cryptoRandomString({ 
             length: 15,
             type: "distinguishable"
-        });
+        })}`;
 
         const random_password = cryptoRandomString({ length: 16 });
 
-        const database_user = cryptoRandomString({ 
+        const database_user = `GRIZZY_USER_${cryptoRandomString({ 
             length: 16,
-            type: 'distinguishable',
-        });
+            type: "distinguishable"
+        })}`;
 
         const template = templates[dialect.toLowerCase()];
 
         if (template) {
-            const sequelize = new Sequelize({
-                host: process.env.MASTER_DB_URI,
-                username: process.env.MASTER_DB_USERNAME,
-                password: process.env.MASTER_DB_PASSWORD,
-                logging: false,
-                dialect, /* one of 'mysql' | 'postgres' | 'sqlite' | 'mariadb' | 'mssql' | 'db2' | 'snowflake' | 'oracle' */
-            });
+            const sequelize = GrizzyDatabaseEngine.get_database_factory(
+                dialect
+            );
     
             for (const statement of (template.setup ?? [])) {
-                await sequelize.query(
-                    handlebars.compile(statement)({
-                        database_name,
-                        database_user,
-                        random_password
-                    })
-                );
+                const query = handlebars.compile(statement)({
+                    database_name,
+                    database_user,
+                    random_password
+                });
+
+                console.log(query);
+
+                await sequelize.query(query);
             }
 
             await sequelize.close();
-
-            // execute any triggers found
-            /*
-            if (Array.isArray(template.triggers) && template.triggers.length) {
-                const sequelize = new Sequelize({
-                    host: process.env.MASTER_DB_URI,
-                    username: database_user,
-                    database: database_name,
-                    password: random_password,
-                    logging: false,
-                    dialect, // one of 'mysql' | 'postgres' | 'sqlite' | 'mariadb' | 'mssql' | 'db2' | 'snowflake' | 'oracle'
-                });
-
-                for (const statement of template.triggers) {
-                    await sequelize.query(
-                        handlebars.compile(statement)({
-                            database_name,
-                            database_user,
-                            random_password
-                        })
-                    );
-                }                
-
-                await sequelize.close();
-            }*/
-
         }
 
         return {
@@ -94,7 +119,7 @@ export class GrizzyDatabaseEngine {
         const statements = identify(schema_and_data.replace(/USE\s+\w+;?\n*/i, ''));
 
         const sequelize = new Sequelize(credentials.DB_NAME, credentials.DB_USER, credentials.DB_PASSWORD, {
-            host: process.env.MASTER_DB_URI,
+            host: GrizzyDatabaseEngine.get_rds_uri(dialect),
             logging: false,
             dialect: dialect === 'mariadb' ? 'mysql' : dialect /* weird kink fix it later */, /* one of 'mysql' | 'postgres' | 'sqlite' | 'mariadb' | 'mssql' | 'db2' | 'snowflake' | 'oracle' */
         });
@@ -110,7 +135,7 @@ export class GrizzyDatabaseEngine {
     static async query_database(query, dialect, credentials = {}) {
         try {
             const sequelize = new Sequelize(credentials.DB_NAME, credentials.DB_USER, credentials.DB_PASSWORD, {
-                host: process.env.MASTER_DB_URI,
+                host: GrizzyDatabaseEngine.get_rds_uri(dialect),
                 logging: false,
                 dialect: dialect === 'mariadb' ? 'mysql' : dialect /* weird kink fix it later */, /* one of 'mysql' | 'postgres' | 'sqlite' | 'mariadb' | 'mssql' | 'db2' | 'snowflake' | 'oracle' */
             });
@@ -126,7 +151,7 @@ export class GrizzyDatabaseEngine {
 
     static async delete_database(dialect, credentials) {
         const sequelize = new Sequelize(credentials.DB_NAME, credentials.DB_USER, credentials.DB_PASSWORD, {
-            host: process.env.MASTER_DB_URI,
+            host: GrizzyDatabaseEngine.get_rds_uri(dialect),
             logging: false,
             dialect: dialect === 'mariadb' ? 'mysql' : dialect /* weird kink fix it later */, /* one of 'mysql' | 'postgres' | 'sqlite' | 'mariadb' | 'mssql' | 'db2' | 'snowflake' | 'oracle' */
         });
@@ -137,7 +162,7 @@ export class GrizzyDatabaseEngine {
     // import schema defs to reactflow
     static async export_database_schema(dialect, credentials = {}) {
         const sequelize = new Sequelize(credentials.DB_NAME, credentials.DB_USER, credentials.DB_PASSWORD, {
-            host: process.env.MASTER_DB_URI,
+            host: GrizzyDatabaseEngine.get_rds_uri(dialect),
             logging: false,
             dialect: dialect === 'mariadb' ? 'mysql' : dialect /* weird kink fix it later */, /* one of 'mysql' | 'postgres' | 'sqlite' | 'mariadb' | 'mssql' | 'db2' | 'snowflake' | 'oracle' */
         });
@@ -178,7 +203,7 @@ export class GrizzyDatabaseEngine {
               ORDER BY 1, 2, 5`;
                 break;
             default:
-                throw new GrizzyDBException("Invalid dialect specified")
+                throw new GrizzyDBException("Unsupported dialect");
         }
 
         const response = await sequelize.query(sql_template);

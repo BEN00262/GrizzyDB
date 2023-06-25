@@ -89,7 +89,7 @@ class GrizzyLLM {
     async query_database_from_prompt(prompt, dialect, credentials = {}) {
         const datasource = new DataSource({
             type: dialect,
-            host: process.env.MASTER_DB_URI,
+            host: process.env.MASTER_MARIADB_URI,
             database: credentials.DB_NAME,
             username: credentials.DB_USER,
             password: credentials.DB_PASSWORD,
