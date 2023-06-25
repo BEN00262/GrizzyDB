@@ -73,7 +73,35 @@ const YourSchemaEditor: React.FC<{
         <Editor 
           height="30vh" 
           defaultLanguage="sql" 
-          value='-- copy your sql schema and paste here. The data will be generated using ChatGPT'
+          value={`-- copy your sql schema and paste here. The data will be generated using ChatGPT
+          
+-- -- Customers table
+-- CREATE TABLE IF NOT EXISTS Customers (
+--   customer_id INT AUTO_INCREMENT PRIMARY KEY,
+--   customer_name VARCHAR(50) NOT NULL,
+--   email VARCHAR(100) NOT NULL,
+--   phone VARCHAR(20) NOT NULL,
+--   address VARCHAR(200) NOT NULL
+-- );
+
+-- -- Products table
+-- CREATE TABLE IF NOT EXISTS Products (
+--   product_id INT AUTO_INCREMENT PRIMARY KEY,
+--   product_name VARCHAR(100) NOT NULL,
+--   price DECIMAL(10, 2) NOT NULL
+-- );
+
+-- -- Orders table
+-- CREATE TABLE IF NOT EXISTS Orders (
+--   order_id INT AUTO_INCREMENT PRIMARY KEY,
+--   customer_id INT NOT NULL,
+--   product_id INT NOT NULL,
+--   quantity INT NOT NULL,
+--   order_date DATE NOT NULL,
+--   FOREIGN KEY (customer_id) REFERENCES Customers(customer_id),
+--   FOREIGN KEY (product_id) REFERENCES Products(product_id)
+-- );
+          `}
           onChange={handleEditorChange}
         />
       </div>
