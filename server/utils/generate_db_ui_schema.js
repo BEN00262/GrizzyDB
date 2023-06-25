@@ -19,6 +19,8 @@ const adjustDataTypeName = (rawName) => {
   }
 };
 
+const get_table_name = raw_table_name => raw_table_name?.split(".")[1];
+
 const readTableData = async (schema) => {
   const schemaData = schema.replaceAll('"', '').trim().split("\n").map(row => row.split(","));
   const [headers] = schemaData.splice(0, 1);
@@ -33,8 +35,9 @@ const readTableData = async (schema) => {
 };
 
 const importSchemaColors = async (schemas) => {
-  const schemasTemplateFile = await fs.readFile(path.join(__dirname, SCHEMA_COLORS_TEMPLATE_FILE), "utf8");
-  const defaultSchemaColors = JSON.parse(schemasTemplateFile);
+  const defaultSchemaColors = JSON.parse(
+    await fs.readFile(path.join(__dirname, SCHEMA_COLORS_TEMPLATE_FILE), "utf8")
+  );
 
   let schemaColors = Object.keys(schemas).reduce((acc, schemaName) => {
     acc[schemaName] = defaultSchemaColors.DEFAULT;
@@ -97,17 +100,87 @@ const importTableConfigs = async (tables) => {
   return _tables;
 };
 
-// https://ourcodeworld.com/articles/read/608/how-to-camelize-and-decamelize-strings-in-javascript
-const camelize = (text) => {
-  return text.replace(/\W/, "-").replace(/^([A-Z])|[\s-_]+(\w)/g, function(match, p1, p2, offset) {
-      if (p2) return p2.toUpperCase();
-      return p1.toLowerCase();
-  });
+const importEdgeConfigs = async (tables) => {
+  return [];
 };
 
-const importEdgeConfigs = async (tables) => {
-    return [];
-};
+export const generate_db_graph = async (data) => {
+  try {
+      const tables = [];
+  
+      for (let [table_name, table_structure] of Object.entries(data.tables)) {
+          if (table_name.toLowerCase() === 'public.sequelizemeta') {
+              continue
+          }
+  
+          table_name = get_table_name(table_name)
+  
+          let columns = []
+          
+          for (const [ts_name, ts_value] of Object.entries(table_structure)) {
+              switch (ts_value.type) {
+                  case 'TIMESTAMP WITH TIME ZONE':
+                      ts_value.type = 'DATE'
+                      break;
+                  default:
+                      if (/CHARACTER VARYING\(\d+\)/.test(ts_value.type)) {
+                          const value = ts_value.type.match(/\d+/)[0]
+                          ts_value.type = `VARCHAR(${+value})`
+                      }
+              }
+  
+              columns.push({
+                  name: ts_name,
+                  type: ts_value.type,
+                  key: ts_value.primaryKey
+              });
+          }
+  
+          tables.push({
+              name: table_name,
+              columns
+          })
+      }
+
+      const relationships = [];
+
+      for (const [table, entries] of Object.entries(data.foreignKeys)) {
+        for (const [column, attributes] of Object.entries(entries)) {
+          if (attributes?.isForeignKey) {
+            const { 
+              source_table, source_schema, target_schema, 
+              source_column, target_table, target_column 
+            } = attributes.foreignSources;
+
+            const relation = data.relations.find(
+              ({ parentId, parentTable, childTable }) => {
+                return parentId === column && 
+                  `${source_schema}.${source_table}` === childTable && 
+                  `${target_schema}.${target_table}` === parentTable;
+              }
+            );
+
+            if (relation) {
+              let relationship_type = relation.isM2M ? 'hasMany' : relation.isOne ? 'hasOne' : 'hasMany';
+
+              relationships.push({
+                source: source_table,
+                sourceKey: source_column,
+                target: target_table,
+                targetKey: target_column,
+
+                relation: relationship_type
+              });
+            }
+          }
+        }
+      }
+
+      return { tables, relationships }
+  } catch(error) {
+      throw error;
+  }
+}
 
 export const getDBSchemas = async (schema) => {
   const tableData = await readTableData(schema);

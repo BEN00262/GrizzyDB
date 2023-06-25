@@ -7,11 +7,12 @@ DotEnv.config({
 
 import cryptoRandomString from 'crypto-random-string';
 import { Sequelize } from 'sequelize';
+import SequelizeAuto from 'sequelize-auto';
 import { identify } from 'sql-query-identifier';
 import { json2csv } from 'json-2-csv';
 import handlebars from 'handlebars';
 import { GrizzyDBException } from '../../utils/index.js';
-import { getDBSchemas } from '../../utils/generate_db_ui_schema.js';
+import { generate_db_graph, getDBSchemas } from '../../utils/generate_db_ui_schema.js';
 import { templates } from './templates/index.js';
 
 export class GrizzyDatabaseEngine {
@@ -161,56 +162,71 @@ export class GrizzyDatabaseEngine {
 
     // import schema defs to reactflow
     static async export_database_schema(dialect, credentials = {}) {
-        const sequelize = new Sequelize(credentials.DB_NAME, credentials.DB_USER, credentials.DB_PASSWORD, {
-            host: GrizzyDatabaseEngine.get_rds_uri(dialect),
-            logging: false,
-            dialect: dialect === 'mariadb' ? 'mysql' : dialect /* weird kink fix it later */, /* one of 'mysql' | 'postgres' | 'sqlite' | 'mariadb' | 'mssql' | 'db2' | 'snowflake' | 'oracle' */
-        });
-
-        let sql_template = '';
-
-        switch (dialect) {
-            case 'mariadb':
-            case 'mysql':
-                sql_template = `SELECT
-                c.table_schema,
-                c.table_name,
-                c.column_name,
-                c.data_type,
-                c.ordinal_position
-              FROM information_schema.columns c
-              LEFT JOIN information_schema.views v
-                ON v.table_schema = c.table_schema
-                  AND v.table_name = c.table_name
-              WHERE
-                c.table_schema NOT IN ('sys','information_schema', 'mysql', 'performance_schema')
-                AND c.table_name NOT IN ('schema_migrations', 'ar_internal_metadata')`;
-                break;
-            case 'postgres':
-                sql_template = `SELECT
-                t.table_schema,
-                t.table_name,
-                c.column_name,
-                c.data_type,
-                c.ordinal_position
-              FROM information_schema.tables t
-              LEFT JOIN information_schema.columns c
-                ON t.table_schema = c.table_schema
-                  AND t.table_name = c.table_name
-              WHERE
-                t.table_schema NOT IN ('information_schema', 'pg_catalog')
-                AND t.table_name NOT IN ('schema_migrations', 'ar_internal_metadata')
-              ORDER BY 1, 2, 5`;
-                break;
-            default:
-                throw new GrizzyDBException("Unsupported dialect");
-        }
-
-        const response = await sequelize.query(sql_template);
-
-        return getDBSchemas(
-            await json2csv(response?.[0])
+        const auto = new SequelizeAuto(
+            credentials.DB_NAME, credentials.DB_USER, credentials.DB_PASSWORD, {
+                host: GrizzyDatabaseEngine.get_rds_uri(dialect),
+                dialect,
+                noWrite: true,
+                logging:false
+            }
         );
+
+        const data = await auto.run()
+
+        console.log(
+            await generate_db_graph(data)
+        )
+
+        // const sequelize = new Sequelize(credentials.DB_NAME, credentials.DB_USER, credentials.DB_PASSWORD, {
+        //     host: GrizzyDatabaseEngine.get_rds_uri(dialect),
+        //     logging: false,
+        //     dialect: dialect === 'mariadb' ? 'mysql' : dialect /* weird kink fix it later */, /* one of 'mysql' | 'postgres' | 'sqlite' | 'mariadb' | 'mssql' | 'db2' | 'snowflake' | 'oracle' */
+        // });
+
+        // let sql_template = '';
+
+        // switch (dialect) {
+        //     case 'mariadb':
+        //     case 'mysql':
+        //         sql_template = `SELECT
+        //         c.table_schema,
+        //         c.table_name,
+        //         c.column_name,
+        //         c.data_type,
+        //         c.ordinal_position
+        //       FROM information_schema.columns c
+        //       LEFT JOIN information_schema.views v
+        //         ON v.table_schema = c.table_schema
+        //           AND v.table_name = c.table_name
+        //       WHERE
+        //         c.table_schema NOT IN ('sys','information_schema', 'mysql', 'performance_schema')
+        //         AND c.table_name NOT IN ('schema_migrations', 'ar_internal_metadata')`;
+        //         break;
+        //     case 'postgres':
+        //         sql_template = `SELECT
+        //         t.table_schema,
+        //         t.table_name,
+        //         c.column_name,
+        //         c.data_type,
+        //         c.ordinal_position
+        //       FROM information_schema.tables t
+        //       LEFT JOIN information_schema.columns c
+        //         ON t.table_schema = c.table_schema
+        //           AND t.table_name = c.table_name
+        //       WHERE
+        //         t.table_schema NOT IN ('information_schema', 'pg_catalog')
+        //         AND t.table_name NOT IN ('schema_migrations', 'ar_internal_metadata')
+        //       ORDER BY 1, 2, 5`;
+        //         break;
+        //     default:
+        //         throw new GrizzyDBException("Unsupported dialect");
+        // }
+
+        // const response = await sequelize.query(sql_template);
+
+        // return getDBSchemas(
+        //     await json2csv(response?.[0])
+        // );
     }
 }
 
