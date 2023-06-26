@@ -342,13 +342,11 @@ const Visualizer: React.FC<VisualizerProps> = (props: VisualizerProps) => {
     tablePositions: {}
   } as DatabaseConfig);
 
-  // const [databasesLoaded, setDatabasesLoaded] = useState(false);
   const { active_database } = useActiveDatabase();
 
-  // get this from the endpoint
   const { isLoading, data } = useQuery(['database-schema', active_database?._id], () => get_database_schema(active_database?._id), {
     enabled: !!active_database?._id,
-    staleTime: 20 * 1000,
+    refetchOnMount: true,
     onSuccess: database_config => {
       setCurrentDatabase(database_config);
     }

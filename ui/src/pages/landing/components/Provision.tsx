@@ -31,7 +31,7 @@ const DBCard: React.FC<{
 }> = ({ database: {dialect, logo, enabled }, selected_dialect, onSelected }) => {
     return (
         <div style={{
-            border: `1px solid ${selected_dialect === dialect ? 'black' :  '#efefef'}`,
+            border: `1px solid ${selected_dialect === dialect ? '#d3d3d3' :  '#efefef'}`,
             borderRadius: "2px",
             display: "flex",
             flexDirection: "row",
@@ -179,7 +179,7 @@ const style = {
   top: '50%',
   left: '50%',
   transform: 'translate(-50%, -50%)',
-  width: 1000,
+  width: "58vw",
   bgcolor: 'background.paper',
   border: '1px solid #efefef',
   boxShadow: 24,
@@ -282,7 +282,7 @@ const ProvisionModal: React.FC<{
                 {
                   databases.map((database, position) => {
                     return (
-                      <Grid xs={6} sm={4} key={position}>
+                      <Grid xs={6} sm={3} key={position}>
                         <DBCard 
                           database={database}
                           onSelected={() => setDatabaseTemplate(old => ({ ...old, dialect: database.dialect }))}
