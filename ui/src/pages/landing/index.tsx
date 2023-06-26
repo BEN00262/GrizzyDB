@@ -60,7 +60,23 @@ function Credentials({ credentials }: { credentials: ICredential[] }) {
                     sx={{
                         [`& .${tableCellClasses.root}`]: {
                           borderBottom: "none"
-                        }
+                        },
+                        '*::-webkit-scrollbar': {
+                            width: '8px',
+                            height: '8px',
+                          },
+                          '*::-webkit-scrollbar-track': {
+                            background: 'inherit',
+                            boxShadow: 'inset 0 0 6px rgba(0, 0, 0, 0.3)',
+                          },
+                          '*::-webkit-scrollbar-thumb': {
+                            // backgroundColor: header[currentTheme],
+                            borderRadius: '20px',
+                            // border: header[currentTheme],
+                          },
+                          '*::-webkit-scrollbar-corner': {
+                            background: 'inherit',
+                          },
                     }}
                 >
                     <TableBody>

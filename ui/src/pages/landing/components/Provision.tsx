@@ -1,28 +1,26 @@
-import * as React from 'react';
-import Box from '@mui/material/Box';
-import Grid from '@mui/material/Unstable_Grid2';
-import Modal from '@mui/material/Modal';
-import { Container } from 'react-bootstrap';
-import FormControlLabel from '@mui/material/FormControlLabel';
-import Checkbox from '@mui/material/Checkbox';
-import Tab from '@mui/material/Tab';
+import Editor from '@monaco-editor/react';
+import PlayCircleFilledWhiteIcon from '@mui/icons-material/PlayCircleFilledWhite';
+import LoadingButton from '@mui/lab/LoadingButton';
 import TabContext from '@mui/lab/TabContext';
-import Button from '@mui/material/Button';
 import TabList from '@mui/lab/TabList';
 import TabPanel from '@mui/lab/TabPanel';
 import Alert from '@mui/material/Alert';
-import Editor from '@monaco-editor/react';
-import LoadingButton from '@mui/lab/LoadingButton';
-import { useMutation, useQuery } from 'react-query';
-import { get_available_database, get_available_sample_data_templates, provision_database } from './api';
-import { DBDialect, IDatabase, IDatabaseTemplate, ISampleTemplate, Template } from '../../../context/types';
-import { useMemo } from 'react';
+import Box from '@mui/material/Box';
+import FormControlLabel from '@mui/material/FormControlLabel';
+import Modal from '@mui/material/Modal';
 import Radio from '@mui/material/Radio';
 import RadioGroup from '@mui/material/RadioGroup';
-import { add_database, useGrizzyDBDispatch } from '../../../context';
+import Tab from '@mui/material/Tab';
+import Grid from '@mui/material/Unstable_Grid2';
 import { isAxiosError } from 'axios';
-import PlayCircleFilledWhiteIcon from '@mui/icons-material/PlayCircleFilledWhite';
+import * as React from 'react';
+import { useMemo } from 'react';
+import { Container } from 'react-bootstrap';
+import { useMutation, useQuery } from 'react-query';
 import { GrizzyQueryClient } from '../../../App';
+import { useGrizzyDBDispatch } from '../../../context';
+import { DBDialect, IDatabase, IDatabaseTemplate, ISampleTemplate, Template } from '../../../context/types';
+import { get_available_database, get_available_sample_data_templates, provision_database } from './api';
 
 const DBCard: React.FC<{
   database: IDatabase, 
@@ -132,6 +130,14 @@ function SampleDataTabs(
         setSamples(data);
       },
     });
+
+    React.useEffect(() => {
+      const position = +value;
+
+      if (!isNaN(position) && position > 0) {
+        handleSampleDataChange(samples?.[+value - 1]?.sql_statements ?? '');
+      }
+    }, [samples]);
 
     const handleChange = (event: any, newValue: any) => {
       setValue(newValue);

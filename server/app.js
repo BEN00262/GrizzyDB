@@ -11,6 +11,12 @@ import path from 'path';
 import mongoose from 'mongoose';
 import consola from 'consola'
 import { DatabaseRoute, SampleRoute } from './routes/index.js';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+
+const __dirname = dirname(
+    fileURLToPath(import.meta.url)
+);
 
 
 const app = express();

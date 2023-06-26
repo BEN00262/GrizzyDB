@@ -117,24 +117,4 @@ class GrizzyLLM {
     }
 }
 
-// ;(async () => {
-//     const GrizzyLLMInstance = new GrizzyLLM();
-
-//     // testing the ability of gpt to generate random db schemas with data
-//     // console.log(
-//     //     await GrizzyLLMInstance.generate_sample_data_templates(["mysql", "postgres", "mariadb"])
-//     // )
-
-//     // testing ability of gpt to understand a schema and generate sample data that fits the schema
-//     console.log(
-//         await GrizzyLLMInstance.generate_sample_data_for_schema(
-//             `CREATE TABLE users (id INT AUTO_INCREMENT PRIMARY KEY, name VARCHAR(50), email VARCHAR(50)); CREATE TABLE orders (id INT AUTO_INCREMENT PRIMARY KEY, user_id INT, product VARCHAR(50), FOREIGN KEY (user_id) REFERENCES users(id));`,
-            
-//             ["mariadb"]
-//         )
-//     )
-
-// })()
-
-
 export const GrizzyLLMInstance = new GrizzyLLM();

@@ -89,15 +89,11 @@ export class GrizzyDatabaseEngine {
             );
     
             for (const statement of (template.setup ?? [])) {
-                const query = handlebars.compile(statement)({
+                await sequelize.query(handlebars.compile(statement)({
                     database_name,
                     database_user,
                     random_password
-                });
-
-                console.log(query);
-
-                await sequelize.query(query);
+                }));
             }
 
             await sequelize.close();

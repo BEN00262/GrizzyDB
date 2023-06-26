@@ -110,7 +110,8 @@ const DBDataGrid: React.FC<IDBQuery> = ({ query, mode }) => {
         });
     }, {
         onSuccess: data => {
-          const has_id = Object.keys(data?.[0] ?? {}).includes('id');
+          if (data?.length) {
+            const has_id = Object.keys(data?.[0] ?? {}).includes('id');
 
             setGridData({
                 columns: data ? generate_columns_from_row_data(data[0]) : [],
@@ -119,6 +120,7 @@ const DBDataGrid: React.FC<IDBQuery> = ({ query, mode }) => {
                   ...(has_id ? {} : { id: position + 1 })
                 }))
             })
+          }
         },
 
         onError: (error: Error) => {

@@ -11,13 +11,13 @@ export class DatabaseController {
                 custom_schema_template, selected_template 
             } = req.body;
 
-            // let already_provisioned_databases = await DatabaseModel.count({
-            //     owner: req.user._id
-            // });
+            let already_provisioned_databases = await DatabaseModel.count({
+                owner: req.user._id
+            });
 
-            // if (already_provisioned_databases >= 3) {
-            //     throw new GrizzyDBException("You are only limited to a max of 3 databases on the BETA version");
-            // }
+            if (already_provisioned_databases >= 3) {
+                throw new GrizzyDBException("You are only limited to a max of 3 databases on the BETA version");
+            }
 
             const credentials = await GrizzyDatabaseEngine.provision_database(dialect);
 
@@ -45,7 +45,7 @@ export class DatabaseController {
                         
                         ${(await GrizzyLLMInstance.generate_sample_data_for_schema(
                             custom_schema_template, [dialect]
-                        ))?.[0]?.sql_statements}
+                        ))?.filter(u => u)?.map(({ sql_statements }) => sql_statements).join("\n\n")}
                         `, 
                         dialect, credentials
                     );    
