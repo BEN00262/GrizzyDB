@@ -127,8 +127,8 @@ function ProvisionedDB({ credentials, dialect }: IDatabaseDisplay) {
                             margin: "auto"
                         }}>
                             <JTab>ERD</JTab>
-                            <JTab>REST</JTab>
-                            <JTab>GraphQL</JTab>
+                            <JTab>REST (wip)</JTab>
+                            <JTab>GraphQL (wip)</JTab>
                         </JTabList>
 
                         <JTabPanel value={0} sx={{
@@ -157,7 +157,7 @@ function ProvisionedDB({ credentials, dialect }: IDatabaseDisplay) {
                                 url="https://petstore.swagger.io/v2/swagger.json" 
                             />
                         </JTabPanel>
-                        
+
                         <JTabPanel value={2} sx={{ height: "38vh" }}>
                             <div style={{
                                 width: "100%",

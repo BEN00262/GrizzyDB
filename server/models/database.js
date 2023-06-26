@@ -19,6 +19,14 @@ const databaseSchema = new mongoose.Schema({
         required: true
     },
 
+    rest_script: {
+        type: String
+    },
+
+    graphql_script: {
+        type: String
+    },
+
     owner: {
         type: mongoose.Types.ObjectId,
         ref: 'User'

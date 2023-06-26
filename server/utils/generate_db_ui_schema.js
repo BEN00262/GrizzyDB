@@ -42,8 +42,8 @@ export const generate_db_graph = async (data) => {
                 break;
             default:
                 if (/CHARACTER VARYING\(\d+\)/.test(ts_value.type)) {
-                    const value = ts_value.type.match(/\d+/)[0]
-                    ts_value.type = `VARCHAR(${+value})`
+                  const value = ts_value.type.match(/\d+/)[0]
+                  ts_value.type = `VARCHAR(${+value})`
                 }
           }
 

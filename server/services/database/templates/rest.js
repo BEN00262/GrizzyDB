@@ -1,6 +1,5 @@
 import YAML from 'json-to-pretty-yaml';
 import pluralize from 'pluralize';
-import RadixRouter from 'radix-router';
 
 function map_types(type) {
     type = type.toLowerCase();
@@ -19,46 +18,7 @@ function map_types(type) {
 export function generate_rest_endpoints(
     tables
 ) {
-    // create a wrapper function that forwards req, res from parent requests
-    // returns a string that takes req, res
-    let routes = [];
-
-    for (const table of tables) {
-        routes = [
-            ...routes,
-            {
-                path: `/${table.name.toLowerCase()}`,
-                handler: (req, res) => {
-                    switch (req.method.toLowerCase()) {
-                        case 'post':
-                            break;
-                    }
-                }
-            },
-            {
-                path: `/${table.name.toLowerCase()}/all`,
-                handler: (req, res) => {
-                    switch (req.method.toLowerCase()) {
-                        case 'get':
-                            break;
-                    }
-                }
-            },
-            {
-                path: `/${table.name.toLowerCase()}/:id`,
-                handler: (req, res) => {
-                    switch (req.method.toLowerCase()) {
-                        case 'get':
-                            break;
-                        case 'put':
-                            break;
-                        case 'delete':
-                            break;
-                    }
-                }
-            }
-        ]
-    }
+    const vm = new VM();
 
     return `function (connection) {
         const RadixRouter = require('radix-router');
