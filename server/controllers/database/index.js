@@ -82,13 +82,13 @@ export class DatabaseController {
                 custom_schema_template, selected_template
             } = req.body;
 
-            // let already_provisioned_databases = await DatabaseModel.count({
-            //     owner: req.user._id
-            // });
+            let already_provisioned_databases = await DatabaseModel.count({
+                owner: req.user._id
+            });
 
-            // if (already_provisioned_databases >= 3) {
-            //     throw new GrizzyDBException("You are only limited to a max of 3 databases on the BETA version");
-            // }
+            if (already_provisioned_databases >= 3) {
+                throw new GrizzyDBException("You are only limited to a max of 3 databases on the BETA version");
+            }
 
             // check what we have first
             if (selected_template === 'bring_your_own') {
