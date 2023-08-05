@@ -69,14 +69,14 @@ export class GrizzyDatabaseEngine {
 
     // max size and everything in between
     static async provision_database(dialect) {
-        const database_name = `GRIZZY_DB_${cryptoRandomString({ 
+        const database_name = `GD_${cryptoRandomString({ 
             length: 15,
             type: "distinguishable"
         })}`;
 
         const random_password = cryptoRandomString({ length: 16 });
 
-        const database_user = `GRIZZY_USER_${cryptoRandomString({ 
+        const database_user = `GU_${cryptoRandomString({ 
             length: 16,
             type: "distinguishable"
         })}`;
@@ -158,6 +158,92 @@ export class GrizzyDatabaseEngine {
         // generate graphql types and stuff
         // generate a single script -- compile it
 
+    }
+
+    static generate_schema_diffs(base_schema, compare_schema) {
+        const processed_tables = [];
+
+
+        (base_schema?.tables ?? []).forEach(table => {
+            let equivalent_table_on_main = (compare_schema?.tables ?? []).find(
+                ({ name }) => name === table?.name
+            );
+
+            if (equivalent_table_on_main) {
+                // get the columns and mark the changes
+                let processed_columns = [];
+
+                (table?.columns ?? []).forEach(column => {
+                    let equivalent_column_on_main = (equivalent_table_on_main?.columns ?? []).find(
+                        ({ name }) => name === column?.name
+                    );
+
+                    if (equivalent_column_on_main && (equivalent_column_on_main?.type !== column?.type)) {
+                        column.diffColor = "#FFFF00";
+                    } else {
+                        column.diffColor = "#CAF7B7";
+                    }
+
+                    processed_columns.push(column?.name);
+                });
+
+                base_schema.columns = [
+                    ...(base_schema?.columns ?? []),
+                    ...(compare_schema?.columns ?? []).filter(
+                        ({ name }) => !processed_columns.includes(name)
+                    ).map(x => ({ ...x, diffColor: "#ffcccb" }))
+                ];
+            } else {
+                table.diffColor = "#CAF7B7";
+            }
+
+            processed_tables.push(table?.name);
+        });
+
+        // get all the 
+        base_schema.tables = [
+            ...(base_schema?.tables ?? []),
+            ...(compare_schema?.tables ?? []).filter(
+                ({ name }) => !processed_tables.includes(name)
+            ).map(x => ({ ...x, diffColor: "#ffcccb" }))
+        ];
+
+        base_schema.edgeConfigs = [
+            ...(base_schema?.edgeConfigs ?? []),
+            ...(compare_schema?.edgeConfigs ?? []),
+        ];
+
+        base_schema.schemaColors = {
+            ...(base_schema?.schemaColors ?? {}),
+            ...(compare_schema?.schemaColors ?? {}),
+        };
+
+        base_schema.tablePositions = {
+            ...(base_schema?.tablePositions ?? {}),
+            ...(compare_schema?.tablePositions ?? {}),
+        }
+
+        return base_schema;
+    }
+
+    static async get_database_schema_version(dialect, credentials) {
+        const sequelize = new Sequelize(credentials.DB_NAME, credentials.DB_USER, credentials.DB_PASSWORD, {
+            host: GrizzyDatabaseEngine.get_rds_uri(dialect),
+            logging: false,
+            dialect: dialect === 'mariadb' ? 'mysql' : dialect /* weird kink fix it later */, /* one of 'mysql' | 'postgres' | 'sqlite' | 'mariadb' | 'mssql' | 'db2' | 'snowflake' | 'oracle' */
+        });
+
+        const schema_version = templates[dialect]?.schema_version;
+
+        if (schema_version) {
+            const response = await sequelize.query(
+                templates[dialect]?.schema_version
+            );
+        
+            return JSON.stringify(response?.[0]);
+        }
+     
+        return null;
     }
 
     static async delete_database(dialect, credentials) {

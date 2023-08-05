@@ -8,6 +8,9 @@ export const templates = {
             // "FLUSH PRIVILEGES;"
         ],
 
+        // used to get schema version on a high scale
+        schema_version: "SELECT table_name, column_name, data_type FROM information_schema.columns WHERE table_schema = 'public';",
+
         triggers: []
     },
 
@@ -20,6 +23,8 @@ export const templates = {
             "FLUSH PRIVILEGES;"
         ],
 
+        schema_version: "SELECT table_name, column_name, data_type FROM information_schema.columns WHERE table_schema = DATABASE();",
+
         triggers: []
     },
 
@@ -30,6 +35,8 @@ export const templates = {
             "GRANT ALL PRIVILEGES ON {{database_name}}.* TO '{{database_user}}'@'%';",
             "FLUSH PRIVILEGES;"
         ],
+
+        schema_version: "SELECT table_name, column_name, data_type FROM information_schema.columns WHERE table_schema = DATABASE();",
 
         triggers: []
     }

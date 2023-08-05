@@ -55,7 +55,7 @@ export const generate_db_graph = async (data) => {
       }
 
       tables.push({
-          name: table_name,
+          name: `${schema_name}.${table_name}`,
           schemaColor: "#91C4F2",
           columns
       })
@@ -83,9 +83,9 @@ export const generate_db_graph = async (data) => {
           let relationship_type = relation.isM2M ? 'hasMany' : relation.isOne ? 'hasOne' : 'hasMany';
 
           relationships.push({
-            source: target_table,
+            source: `${target_schema}.${target_table}`,
             sourceKey: target_column,
-            target: source_table,
+            target: `${source_schema}.${source_table}`,
             targetKey: source_column,
 
             relation: relationship_type

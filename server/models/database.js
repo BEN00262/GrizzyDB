@@ -12,19 +12,32 @@ const databaseSchema = new mongoose.Schema({
         required: true
     },
 
+    // type -- can be a hosted database
+    // or a you
+    product_type: {
+        type: String,
+        enum: ['hosted', 'bring_your_own'],
+        default: 'hosted'
+    },
+
     // enforced using yup on the client side
     credentials: {
         type: String,
-        unique: true,
-        required: true
     },
 
+    // DEPRACTED ... maybe
     rest_script: {
         type: String
     },
 
+    // DEPRACTED ... maybe
     graphql_script: {
         type: String
+    },
+
+    folder: {
+        type: mongoose.Types.ObjectId,
+        ref: 'folder'
     },
 
     owner: {

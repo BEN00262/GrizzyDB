@@ -10,7 +10,7 @@ import cors from 'cors';
 import path from 'path';
 import mongoose from 'mongoose';
 import consola from 'consola'
-import { DatabaseRoute, SampleRoute } from './routes/index.js';
+import { AuthRoute, DatabaseRoute, SampleRoute } from './routes/index.js';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 
@@ -22,16 +22,18 @@ const __dirname = dirname(
 const app = express();
 
 app.use(cors());
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+
+app.use(express.json({limit: '10mb'}));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 app.use(express.static(path.join("./", 'public')));
 
 
 app.use('/database', DatabaseRoute.default);
 app.use('/samples', SampleRoute.default);
+app.use('/auth', AuthRoute.default);
 
-app.get('/*', function (req, res) {
+app.get('*', function (req, res) {
     res.sendFile(path.join(__dirname, 'build', 'index.html'));
 })
 

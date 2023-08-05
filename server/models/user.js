@@ -1,7 +1,8 @@
 import mongoose from 'mongoose';
 
 const userSchema = new mongoose.Schema({
-    user_fingerprint: {
+    // comes from google
+    email: {
         type: String,
         unique: true,
         required: true

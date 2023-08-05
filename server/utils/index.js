@@ -1,4 +1,34 @@
 import consola from 'consola';
+import handlebars from 'handlebars';
+import fs from 'fs/promises';
+import { fileURLToPath } from 'url';
+import path, { dirname } from 'path';
+
+import jwt from 'jsonwebtoken';
+
+/**
+ *
+ * @param {*} payload
+ * @returns {string}
+ */
+export const signJwtToken = payload => {
+    return jwt.sign(payload, process.env.JWT_SECRET, {
+        expiresIn: `${process.env.JWT_TOKEN_TIME}h`
+    })
+}
+
+
+/**
+ *
+ * @param {string} jwtToken
+ * @returns
+ */
+export const verifyJwtToken = jwtToken => jwt.verify(jwtToken, process.env.JWT_SECRET);
+
+const __dirname = dirname(
+    fileURLToPath(import.meta.url)
+);
+
 
 export class GrizzyDBException extends Error {
     constructor(message) {
@@ -38,4 +68,9 @@ export const massage_response = (payload, res, code = 200) => {
         status: 'success',
         data: { ...payload }
     })
+}
+
+export async function get_installation_instructions_markdown(context = {}) {
+    const installation_instructions = await fs.readFile(path.join(__dirname, './installation.md'), 'utf-8');
+    return  handlebars.compile(installation_instructions)(context);
 }
