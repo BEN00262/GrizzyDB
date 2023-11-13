@@ -74,3 +74,14 @@ export async function get_installation_instructions_markdown(context = {}) {
     const installation_instructions = await fs.readFile(path.join(__dirname, './installation.md'), 'utf-8');
     return  handlebars.compile(installation_instructions)(context);
 }
+
+/**
+ * @description used to massage names to snakecase for valid db names
+ * @param {string} name 
+ * @param {number} [maxLength=32] 
+ */
+export function morph_name_to_valid_database_name(name, maxLength = 32) {
+    let dbName = name.replace(/\s/g, '_');
+    dbName = dbName.slice(0, maxLength).trim();
+    return dbName?.toLowerCase();
+}
