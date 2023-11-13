@@ -1,4 +1,4 @@
-import { ACTION_ADD_DATABASE, ACTION_CAPTURE_FINGERPRINT, ACTION_INITIALIZE_DATABASES, ACTION_REMOVE_DATABASE, ACTION_SWITCH_ACTIVE_DATABASE } from "./action_types";
+import { ACTION_ADD_DATABASE, ACTION_CAPTURE_FINGERPRINT, ACTION_INITIALIZE_DATABASES, ACTION_REMOVE_DATABASE, ACTION_SWITCH_ACTIVE_DATABASE, ACTION_SWITCH_AUTH_TOKEN } from "./action_types";
 import { IAction, IDatabaseDisplay, IGrizzyDBGlobalState } from "./types";
 
 export default (state: IGrizzyDBGlobalState, action: IAction) => {
@@ -11,6 +11,16 @@ export default (state: IGrizzyDBGlobalState, action: IAction) => {
 
                 local_state.user_fingerprint = fingerprint;
                 localStorage.setItem("user_fingerprint", fingerprint);
+                return local_state;
+            }
+
+        case ACTION_SWITCH_AUTH_TOKEN:
+            {
+                const local_state = { ...state };
+                const auth_token = action.payload as string;
+
+                local_state.auth_token = auth_token;
+                localStorage.setItem("authToken", auth_token);
                 return local_state;
             }
 

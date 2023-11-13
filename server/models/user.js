@@ -2,7 +2,7 @@ import mongoose from 'mongoose';
 
 const userSchema = new mongoose.Schema({
     // comes from google
-    email: {
+    user_reference: {
         type: String,
         unique: true,
         required: true

@@ -126,6 +126,8 @@ export class DatabaseController {
                 owner: req.user._id
             });
 
+            // create a snapshot
+
             // check if product type is set and also the selected template
 
             // if the database was created with data we have to persist the data
@@ -150,6 +152,22 @@ export class DatabaseController {
 
                     break;
             }
+
+            // create snapshot
+            const schema_generated = JSON.stringify(
+                await GrizzyDatabaseEngine.export_database_schema(
+                    database.dialect, credentials
+                )
+            );
+
+            let schema_version_checksum = md5(schema_generated);
+
+            await SnapshotModel.create({
+                checksum: schema_version_checksum,
+                database: database._id,
+                owner: req.user._id,
+                snapshot: LzString.compressToBase64(schema_generated)
+            });
 
             return massage_response({
                 database: {

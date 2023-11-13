@@ -13,8 +13,12 @@ import ReactFlow, {
   getOutgoers,
   useEdgesState,
   useNodesState,
-  useStoreApi
+  useStoreApi,
+  MiniMap
 } from "reactflow";
+
+import Lottie from "lottie-react";
+import networkLoader from "../../assets/network_loader.json";
 
 import { nodeTypes } from "../config/nodeTypes";
 
@@ -46,10 +50,10 @@ import {
 // this is important! You need to import the styles from the lib to make it work
 import { useQuery } from "react-query";
 import "reactflow/dist/style.css";
-import { useActiveDatabase } from "../../hooks";
 import "./Style";
 import { get_database_schema } from "./api";
 import { DatabaseMenuPopup } from "./components/DatabaseMenuPopup";
+import { get_database_diff } from "../../pages/landing/components/api";
 
 interface FlowProps {
   currentDatabase: DatabaseConfig;
@@ -57,6 +61,8 @@ interface FlowProps {
 
 interface VisualizerProps {
   database?: string;
+  main?:string;
+  base?:string;
 }
 
 const Flow: React.FC<FlowProps> = (props: FlowProps) => {
@@ -342,21 +348,43 @@ const Visualizer: React.FC<VisualizerProps> = (props: VisualizerProps) => {
     tablePositions: {}
   } as DatabaseConfig);
 
-  const { active_database } = useActiveDatabase();
-
-  const { isLoading, data } = useQuery(['database-schema', active_database?._id], () => get_database_schema(active_database?._id), {
-    enabled: !!active_database?._id,
+  const { isLoading } = useQuery(['database-schema', props.database, props.main, props.base], () => {
+    return props.database ? get_database_schema(props.database ?? "") : get_database_diff(props.main ?? "", props.base ?? "")
+  }, {
+    enabled: !!props.database || !!props.main || !!props.base,
     refetchOnMount: true,
+    refetchOnWindowFocus: true,
     onSuccess: database_config => {
       setCurrentDatabase(database_config);
     }
-  })
+  });
+
+  if (isLoading) {
+    return (
+      <div style={{
+        height: "400px",
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "center",
+        alignItems: "center"
+      }}>
+        <Lottie 
+          animationData={networkLoader} 
+          loop={true}
+          style={{
+            height: "200px"
+          }} 
+        />
+      </div>
+    );
+  }
 
   return (
     <ReactFlowProvider>
-      {(!isLoading && data)  && <Flow
-        currentDatabase={currentDatabase} />
-      }
+      <Flow
+        currentDatabase={currentDatabase}
+      />
+      <MiniMap/>
     </ReactFlowProvider>
   )
 };

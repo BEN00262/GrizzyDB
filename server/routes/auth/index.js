@@ -7,19 +7,20 @@ const router = express.Router();
 
 router.post('/authenticate', async (req, res) => {
     try {
-        const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+        // const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
-        const ticket = await client.verifyIdToken({
-            idToken: req.body.jwtToken,
-            audience: process.env.GOOGLE_CLIENT_ID
-        });
+        // const ticket = await client.verifyIdToken({
+        //     idToken: req.body.jwtToken,
+        //     audience: process.env.GOOGLE_CLIENT_ID
+        // });
+        const { user_reference } = req.body;
 
-        const { email } = ticket.getPayload();
+        // const { email } = ticket.getPayload();
 
-        let user = await UserModel.findOne({ email });
+        let user = await UserModel.findOne({ user_reference });
 
         if (!user) {
-            user = await UserModel.create({ email });
+            user = await UserModel.create({ user_reference });
         }
 
         return massage_response({

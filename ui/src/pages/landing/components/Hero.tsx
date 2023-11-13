@@ -6,9 +6,14 @@ import { useState } from 'react';
 import ProvisionModal from './Provision';
 import StorageIcon from '@mui/icons-material/Storage';
 import { TypeAnimation } from 'react-type-animation';
+import { useNavigate } from 'react-router-dom';
+import { useLoginWithGoogleAuth } from '../../../hooks';
+import LoginComponent from '../../../components/Login';
 
 function Hero() {
     const [isProvisionModalopen, setIsProvisionModalOpen] = useState(false);
+    const navigate = useNavigate();
+    // const { login } = useLoginWithGoogleAuth();
 
     return (
         <div className='hero'>
@@ -31,7 +36,7 @@ function Hero() {
                                 letterSpacing: "2px"
                             }}>
                                 <TypeAnimation
-                                    sequence={["Free Ephemeral Relational Databases for all your testing needs"]}
+                                    sequence={["Figma for your database schemas"]}
                                     wrapper="span"
                                     speed={30}
                                     cursor={false}
@@ -40,20 +45,22 @@ function Hero() {
                             <h5 className='action-text'>Be up and running in less than a minute</h5>
                         </div>
 
-                        <Button 
+                        <LoginComponent/>
+
+                        {/* <Button 
                             variant="outlined"
+                            className='action-text'
                             style={{
                                 color: "black",
                                 fontWeight: "bold",
                                 letterSpacing: "2px",
-                                // backgroundColor: "black",
                                 border: "1px solid #000"
                             }}
                             endIcon={<StorageIcon />}
-                            onClick={() => setIsProvisionModalOpen(true)}
+                            onClick={() => login()}
                         >
-                            create database
-                        </Button>
+                            get started
+                        </Button> */}
                     </Col>
                 </Row>
             </Container>

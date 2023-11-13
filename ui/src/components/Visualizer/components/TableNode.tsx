@@ -42,7 +42,7 @@ export const TableNode: FC<NodeProps> = ({ data }) => {
           dangerouslySetInnerHTML={{__html: markdown(data.description || "No description.") }} />
       </div>
 
-      <div className="table__columns">
+      <div className="table__columns" style={{ backgroundColor: data.diffColor ?? "inherit" }}>
         {data.columns.map((column: any, index: any) => (
           <div
             key={index}
@@ -66,7 +66,7 @@ export const TableNode: FC<NodeProps> = ({ data }) => {
               className={column.handleType === "source" ? "left-handle source-handle" : "left-handle target-handle"}
             />}
 
-            <div className="column-name__inner">
+            <div className="column-name__inner" style={{ backgroundColor: data.diffColor ?? "inherit" }}>
               <div className="column-name__name">
                 {column.key && <KeyIcon />}
                 {column.name}

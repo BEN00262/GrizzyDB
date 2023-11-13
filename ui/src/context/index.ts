@@ -2,13 +2,15 @@ import { Dispatch, useReducer } from 'react';
 import { createContainer } from 'react-tracked';
 import { IAction, IDatabaseDisplay, IGrizzyDBGlobalState } from './types';
 import reducer from './reducer';
-import { ACTION_ADD_DATABASE, ACTION_CAPTURE_FINGERPRINT, ACTION_INITIALIZE_DATABASES, ACTION_REMOVE_DATABASE, ACTION_SWITCH_ACTIVE_DATABASE } from './action_types';
+import { ACTION_ADD_DATABASE, ACTION_CAPTURE_FINGERPRINT, ACTION_INITIALIZE_DATABASES, ACTION_REMOVE_DATABASE, ACTION_SWITCH_ACTIVE_DATABASE, ACTION_SWITCH_AUTH_TOKEN } from './action_types';
 import axios from 'axios';
+import verifyToken from '../utils';
 
 
 const initial_state: IGrizzyDBGlobalState = {
     databases: [],
     active_database: 0,
+    auth_token: verifyToken(localStorage.getItem('authToken') ?? ""),
     user_fingerprint: localStorage.getItem('user_fingerprint')
 }
 
@@ -19,6 +21,13 @@ export function change_fingerprint(dispatch: Dispatch<IAction>, user_fingerprint
     dispatch({
         type: ACTION_CAPTURE_FINGERPRINT,
         payload: user_fingerprint
+    })
+}
+
+export function add_auth_token(dispatch: Dispatch<IAction>, auth_token: string) {
+    dispatch({
+        type: ACTION_SWITCH_AUTH_TOKEN,
+        payload: auth_token
     })
 }
 
@@ -57,10 +66,10 @@ axios.defaults.baseURL = import.meta.env.VITE_MAIN_SERVER_ENDPOINT;
 axios.interceptors.request.use(
     onRequest => {
         if (!onRequest.headers['x-access-token']) {
-            const fingerprint = localStorage.getItem('user_fingerprint');
+            const authToken = localStorage.getItem('authToken');
 
-            if (fingerprint) {
-                onRequest.headers['x-access-token'] = fingerprint;
+            if (authToken) {
+                onRequest.headers['x-access-token'] = authToken;
             }
         }
 

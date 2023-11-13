@@ -109,8 +109,6 @@ class GrizzyLLM {
     
         const result = await executor.call({ input: prompt });
     
-        console.log(result);
-    
         await datasource.destroy();
     
         return result?.output;

@@ -21,6 +21,7 @@ import { GrizzyQueryClient } from '../../../App';
 import { useGrizzyDBDispatch } from '../../../context';
 import { DBDialect, IDatabase, IDatabaseTemplate, ISampleTemplate, Template } from '../../../context/types';
 import { get_available_database, get_available_sample_data_templates, provision_database } from './api';
+import { useParams } from 'react-router-dom';
 
 const DBCard: React.FC<{
   database: IDatabase, 
@@ -200,15 +201,17 @@ const ProvisionModal: React.FC<{
 
   const [databaseTemplate, setDatabaseTemplate] = React.useState<IDatabaseTemplate>({
     dialect: 'mariadb',
+    product_type: 'hosted',
     selected_template: 'sample',
     sample_data_template: '',
     custom_schema_template: ''
   });
 
   const [databases, setDatabases] = React.useState<IDatabase[]>([]);
-  const dispatch = useGrizzyDBDispatch();
   const [value, setValue] = React.useState('none');
   const [error, setError] = React.useState<Error | null>(null);
+
+  const params = useParams();
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const selected = (event.target as HTMLInputElement).value;
@@ -217,7 +220,8 @@ const ProvisionModal: React.FC<{
 
     setDatabaseTemplate({
       ...databaseTemplate,
-      selected_template: selected as Template
+      selected_template: selected as Template,
+      product_type: selected === 'bring_your_own' ? 'bring_your_own' : 'hosted',
     });
   };
 
@@ -249,7 +253,7 @@ const ProvisionModal: React.FC<{
   const handleProvisionRequest = useMutation(async () => {
     setError(null);
 
-    return provision_database(databaseTemplate);
+    return provision_database(databaseTemplate, params?.folder_id);
   }, {
     onSuccess: data => {
       GrizzyQueryClient.invalidateQueries(['my-databases'])
@@ -320,6 +324,9 @@ const ProvisionModal: React.FC<{
                     } />
                     <FormControlLabel className='select-radio' value="custom" control={<Radio checked={databaseTemplate.selected_template === 'custom'}/>} label={
                       <span className="action-text">Import your database schema</span>
+                    } />
+                    <FormControlLabel className='select-radio' value="bring_your_own" control={<Radio checked={databaseTemplate.selected_template === 'bring_your_own'}/>} label={
+                      <span className="action-text">Bring your own database</span>
                     } />
                 </RadioGroup>
                 </div>

@@ -11,14 +11,22 @@ import Typography from '@mui/material/Typography';
 import LoadingButton from '@mui/lab/LoadingButton';
 import { IDBQuery } from '../../../context/types';
 import { useActiveDatabase } from '../../../hooks';
-import { query_database } from './api';
+import { create_folder, query_database } from './api';
 import { useMutation } from 'react-query';
 import Alert from '@mui/material/Alert';
 import { isAxiosError } from 'axios';
 import Fab from '@mui/material/Fab';
 import NavigationIcon from '@mui/icons-material/Navigation';
 import MUIDataTable from "mui-datatables";
+import CreateNewFolderOutlinedIcon from '@mui/icons-material/CreateNewFolderOutlined';
 import { useParams } from 'react-router-dom';
+import { Col, Row } from 'react-bootstrap';
+import StorageIcon from '@mui/icons-material/Storage';
+import { LuNetwork } from 'react-icons/lu';
+import { useGrizzyDBState } from '../../../context';
+import TextField from '@mui/material/TextField';
+import { Divider } from '@mui/material';
+import DriveFileMoveOutlinedIcon from '@mui/icons-material/DriveFileMoveOutlined';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -189,7 +197,7 @@ const style = {
     top: '50%',
     left: '50%',
     transform: 'translate(-50%, -50%)',
-    width: 1000,
+    width: "70%",
     bgcolor: 'background.paper',
     border: '1px solid #efefef',
     boxShadow: 24,
@@ -215,25 +223,53 @@ const YourSQLPromptEditor: React.FC<{
     );
 }
 
-const SQLEditorComp = () => {
+const FileMoveComp = () => {
   const [open, setOpen] = React.useState(false);
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
 
-  const [query, setQuery] = React.useState<IDBQuery>({
-    mode: 'sql',
-    query: ''
-  });
+  const params = useParams();
 
-  function handleEditorChange(mode: 'sql' | 'text') {
-    return (value: string | undefined, event: any) => {
-        setQuery({ mode, query: value as string })
-    }
-  }
+  const { databases } = useGrizzyDBState();
+
+  const [selectedFiles, setSelectedFiles] = React.useState<string[]>([]);
+  const [folderName, setFolderName] = React.useState("");
+
+//   const [query, setQuery] = React.useState<IDBQuery>({
+//     mode: 'sql',
+//     query: ''
+//   });
+
+//   function handleEditorChange(mode: 'sql' | 'text') {
+//     return (value: string | undefined, event: any) => {
+//         setQuery({ mode, query: value as string })
+//     }
+//   }
+const handleFolderCreate = useMutation(() => {
+    return create_folder(folderName, selectedFiles)
+})
 
   return (
-    <div>
-      <Button variant="text" size="small" onClick={handleOpen} color="primary">sql / AI editor</Button>
+    <>
+      {/* <Button variant="text" size="small" onClick={handleOpen} color="primary">sql / AI editor</Button> */}
+      {
+        params?.folder_id ? 
+        <Button 
+          variant="outlined"
+          className='action-text'
+          size="small"
+          style={{
+              color: "black",
+              fontWeight: "bold",
+              // letterSpacing: "2px",
+              border: "1px solid #000"
+          }}
+          endIcon={<DriveFileMoveOutlinedIcon />}
+          onClick={handleOpen}
+      >
+          add database files
+      </Button> : null
+      }
       <Modal
         open={open}
         onClose={handleClose}
@@ -241,14 +277,73 @@ const SQLEditorComp = () => {
         aria-describedby="modal-modal-description"
       >
         <Box sx={style}>
-          <EditorTabs 
-            handleEditorChange={handleEditorChange}
-          />
-          <DBDataGrid {...query}/>
+
+        <Divider className="action-text" style={{
+            margin: "20px auto"
+        }}>Choose databases to include in this folder</Divider>
+          <Row style={{
+            height: "500px",
+            overflowY: "auto"
+          }}>
+            {
+                databases.map((database, position) => {
+                    return (
+                        <Col xs={6} md={3} lg={2} key={position}>
+                            <div style={{
+                                border: `1px solid ${selectedFiles.includes(database._id) ? "" : "#efefef"}`,
+                                borderRadius: "5px",
+                                height: "200px",
+                                padding: "5px",
+                                boxSizing: "border-box",
+                                cursor: "pointer",
+                                display: "flex",
+                                flexDirection: "column",
+                                justifyContent: "center",
+                                gap: "5px",
+                                alignItems: "center",
+                                margin: "20px auto",
+                                overflow: "hidden",
+                                whiteSpace: "nowrap",
+                                maxWidth: "100%",
+                                textOverflow: "ellipsis",
+                            }}
+                            
+                            onClick={() => {
+                                setSelectedFiles(selectedFiles.includes(database._id) ? selectedFiles.filter(x => x !== database._id) : [
+                                    ...selectedFiles,
+                                    database._id
+                                ]);
+                            }}
+                            >
+                                {
+                                    database.product_type === 'bring_your_own' ? <LuNetwork style={{
+                                        height: "24px",
+                                        width: "24px"
+                                    }}/> : <StorageIcon style={{
+                                        height: "24px",
+                                        width: "24px"
+                                    }}/>
+                                }
+                                <span className="action-text">{database.dialect}</span>
+                                <br />
+                                <div>
+                                    <span className="action-text">{database.name}</span>
+                                </div>
+                            </div>
+                        </Col>
+                    );
+                })
+            }
+          </Row>
+          <LoadingButton
+                onClick={() => handleFolderCreate.mutate()} 
+                variant="outlined" size="small" 
+                loading={handleFolderCreate.isLoading}
+            >Move</LoadingButton>
         </Box>
       </Modal>
-    </div>
+    </>
   );
 }
 
-export default SQLEditorComp;
+export default FileMoveComp;

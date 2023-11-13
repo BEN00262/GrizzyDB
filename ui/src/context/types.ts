@@ -6,15 +6,32 @@ export interface ICredential {
 
 export type DBDialect = 'postgres' | 'mysql' | 'mariadb';
 
+export type ProductType = 'hosted' | 'bring_your_own';
+
 export interface IDatabaseDisplay {
     _id: string
     name: string
+    product_type: ProductType;
     dialect: DBDialect
     credentials: ICredential[]
 }
 
+export interface ISnapshot {
+    _id: string
+    checksum: string
+    createdAt: Date
+    updatedAt: Date
+    humanTime: string
+}
+
+export interface IFolder {
+    _id: string;
+    name: string;
+}
+
 export interface IGrizzyDBGlobalState {
     user_fingerprint: string | null
+    auth_token: string | null
     active_database: number
     databases: IDatabaseDisplay[]
 }
@@ -27,9 +44,10 @@ export interface IAction {
 }
 
 export interface IDatabase {
-    dialect: DBDialect,
-    logo: string
-    enabled: boolean
+    dialect: DBDialect;
+    product_type: ProductType;
+    logo: string;
+    enabled: boolean;
 }
 
 export interface ISampleTemplate {
@@ -38,10 +56,11 @@ export interface ISampleTemplate {
     sql_statements: string
 }
 
-export type Template = 'custom' | 'sample' | 'none'
+export type Template = 'custom' | 'sample' | 'none' | 'bring_your_own'
 
 export interface IDatabaseTemplate {
     dialect: DBDialect;
+    product_type: ProductType;
     selected_template: Template;
     sample_data_template: string;
     custom_schema_template: string;
