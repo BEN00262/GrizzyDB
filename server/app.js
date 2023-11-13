@@ -34,7 +34,7 @@ app.use('/samples', SampleRoute.default);
 app.use('/auth', AuthRoute.default);
 
 app.get('*', function (req, res) {
-    res.sendFile(path.join(__dirname, 'build', 'index.html'));
+    res.status(404).json({ message: "404" });
 })
 
 ;(async () => {

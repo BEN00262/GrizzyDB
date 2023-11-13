@@ -5,10 +5,12 @@ import {
   FolderModel,
   SnapshotModel,
 } from "../../models/index.js";
+
 import {
   GrizzyDatabaseEngine,
   GrizzyLLMInstance,
 } from "../../services/index.js";
+
 import {
   GrizzyDBException,
   get_installation_instructions_markdown,
@@ -22,7 +24,6 @@ import md5 from "md5";
 import { nanoid } from "nanoid";
 import { generateApiKey } from "generate-api-key";
 import humanTime from "human-time";
-import mongoose from "mongoose";
 
 export class DatabaseController {
   static async create_folder(req, res) {
