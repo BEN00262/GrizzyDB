@@ -86,6 +86,13 @@ class GrizzyLLM {
         return findAndParseJsonLikeText(chatCompletion?.data?.choices?.[0]?.message?.content);
     }
 
+    /**
+     * 
+     * @param {string} prompt 
+     * @param {string} dialect 
+     * @param {object} [credentials={}] 
+     * @returns {string}
+     */
     async query_database_from_prompt(prompt, dialect, credentials = {}) {
         const datasource = new DataSource({
             type: dialect,

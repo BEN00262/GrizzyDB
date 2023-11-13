@@ -4,7 +4,6 @@ import {
   EnsureIsAuthenticated,
 } from "../../middlewares/index.js";
 import { DatabaseController } from "../../controllers/database/index.js";
-import { ClerkExpressRequireAuth } from "@clerk/clerk-sdk-node";
 
 const router = Router();
 
