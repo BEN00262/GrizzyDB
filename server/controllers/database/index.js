@@ -26,6 +26,38 @@ import { generateApiKey } from "generate-api-key";
 import humanTime from "human-time";
 
 export class DatabaseController {
+    // methods to get and manipulate tables
+    static async getTables(req, res) {
+
+    }
+
+    static async deleteTable(req, res) {
+
+    }
+
+    // supports exports as sql insert statements --> choose a dialect and we will retain it | csv | json
+    static async exportTables(req, res) {
+
+    }
+
+
+    static async exportRows(req, res) {
+
+    }
+
+
+    static async deleteRows(req, res) {
+
+    }
+
+
+    static async getTableRows(req, res) {
+        
+    }
+
+
+
+
   static async create_folder(req, res) {
     try {
       const { name, databases_to_add_to_folder } = req.body;
@@ -106,15 +138,15 @@ export class DatabaseController {
         selected_template,
       } = req.body;
 
-      let already_provisioned_databases = await DatabaseModel.count({
-        owner: req.user._id,
-      });
+      // let already_provisioned_databases = await DatabaseModel.count({
+      //   owner: req.user._id,
+      // });
 
-      if (already_provisioned_databases >= 3) {
-        throw new GrizzyDBException(
-          "You are only limited to a max of 3 databases on the BETA version"
-        );
-      }
+      // if (already_provisioned_databases >= 3) {
+      //   throw new GrizzyDBException(
+      //     "You are only limited to a max of 3 databases on the BETA version"
+      //   );
+      // }
 
       // check what we have first
       if (selected_template === "bring_your_own") {
@@ -684,7 +716,9 @@ export class DatabaseController {
         ).toString(CryptoJS.enc.Utf8)
       );
 
-      await GrizzyDatabaseEngine.delete_database(database.dialect, credentials);
+      if (database.product_type === 'hosted') {
+        await GrizzyDatabaseEngine.delete_database(database.dialect, credentials);
+      }
 
       // delete the record
       await DatabaseModel.deleteOne({ _id: database._id });

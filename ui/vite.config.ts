@@ -13,4 +13,13 @@ export default defineConfig({
   // optimizeDeps: {
   //   exclude: ['@sqlite.org/sqlite-wasm'],
   // },
+  resolve: {
+    alias: {
+      renderer: "/src/components/renderer",
+      types: "/src/components/types",
+      libs: "/src/components/libs",
+      drivers: "/src/components/drivers",
+      dialects: "/src/components/dialects",
+    },
+  },
 })

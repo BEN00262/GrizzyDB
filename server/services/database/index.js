@@ -10,7 +10,7 @@ import { Sequelize } from 'sequelize';
 import SequelizeAuto from 'sequelize-auto';
 import { identify } from 'sql-query-identifier';
 import handlebars from 'handlebars';
-import { GrizzyDBException } from '../../utils/index.js';
+import { GrizzyDBException, morph_name_to_valid_database_name } from '../../utils/index.js';
 import { generate_db_graph } from '../../utils/generate_db_ui_schema.js';
 import { templates } from './templates/index.js';
 
@@ -275,6 +275,8 @@ export class GrizzyDatabaseEngine {
     // rename a database
     // called when the user renames a database and we are doing self hosting of the database ---> but should we??
     static async rename_database(dialect, new_name, credentials = {}) {
+        console.log(credentials);
+        
         const sequelize = new Sequelize(credentials.DB_NAME, credentials.DB_USER, credentials.DB_PASSWORD, {
             host: GrizzyDatabaseEngine.get_rds_uri(dialect),
             logging: false,
@@ -283,6 +285,6 @@ export class GrizzyDatabaseEngine {
 
         // https://www.tutorialspoint.com/sql/sql-rename-database.htm
         // TODO: fully test this flow
-        await sequelize.query(`RENAME DATABASE ${credentials.DB_NAME} TO ${new_name};`);        
+        await sequelize.query(`RENAME DATABASE ${credentials.DB_NAME} TO ${morph_name_to_valid_database_name(new_name)};`);        
     }
 }

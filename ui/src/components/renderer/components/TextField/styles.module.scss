@@ -1,0 +1,59 @@
+.input {
+  label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 500;
+  }
+
+  .content {
+    display: flex;
+    border: 2px solid var(--color-input-border);
+    border-radius: 4px;
+
+    &:focus-within {
+      border: 2px solid var(--color-text-link);
+
+      .action_icon {
+        img {
+          opacity: 1;
+        }
+      }
+    }
+  }
+
+  input, textarea {
+    font-size: 1rem;
+    padding: 10px;
+    width: 100%;
+    font-family: inherit;
+    outline: none;
+    border: 0;
+    background: var(--color-surface);
+    color: var(--color-text);
+  }
+
+  .action_icon {
+    display: flex;
+    align-items: center;
+    padding: 0 5px;
+    background: var(--color-input-border);
+    border: 4px solid var(--color-surface);
+    border-radius: 8px;
+    cursor: pointer;
+
+    &:hover {
+      background: var(--color-text-link)
+
+      img {
+        filter: invert(1);
+        opacity: 1;
+      }
+    }
+
+    img {
+      width: 24px;
+      height: 24px;
+      opacity: 0.3;
+    }
+  }
+}

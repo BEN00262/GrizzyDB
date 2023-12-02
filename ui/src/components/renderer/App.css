@@ -1,0 +1,268 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  user-select: none;
+}
+
+/* --------------------------------
+  Color Variables
+----------------------------------- */
+body {
+  --color-surface: #fff;
+  --color-surface-hover: #eee;
+
+  --color-shadow: rgba(0, 0, 0, 0.25);
+  --color-border: #d4d4d4;
+
+  --color-text: #000;
+  --color-text-link: #1a64f4;
+  --color-text-disabled: #aaa;
+
+  /* For Button */
+  --color-surface-light: #ecf0f1;
+  --color-primary: #1a64f4;
+  --color-primary-text: #fff;
+  --color-primary-hover: #3a84ff;
+
+  --color-critical: #e74c3c;
+
+  /* Input */
+  --color-input-border: #e8eaf0;
+
+  /* For Side List */
+  --color-list-surface: #f3f3f3;
+  --color-list-hover: #e8e8e8;
+  --color-list-selected: #e4e6f1;
+  --color-list-line-guide: #ccc;
+
+  /* For Table */
+  --color-table-grid: #eee;
+  --color-table-change: #f6e58d;
+
+  --color-table-cell-number: #2980b9;
+  --color-table-cell-code: #95a5a6;
+
+  --color-table-row-selected: #e4e6f1;
+  --color-table-row-removed: #ff6b81;
+  --color-table-row-new: #7bed9f;
+
+  /* For Scroll */
+  --color-scrollbar: #0001;
+  --color-scrollbar-track: #0001;
+  --color-scrollbar-hover: #0005;
+
+  /* Splitter */
+  --color-splitter: #eee;
+  --color-splitter-hover: #f39c12;
+
+  background: var(--color-surface);
+  color: var(--color-text);
+}
+
+body.dark {
+  --color-surface: #1f1f1f;
+  --color-surface-hover: #3f3f3f;
+
+  --color-shadow: rgba(200, 200, 200, 0.2);
+  --color-border: #454545;
+
+  --color-text: #fff;
+  --color-text-link: #1a64f4;
+  --color-text-disabled: #555;
+
+  /* For Button */
+  --color-surface-light: #4f4f4f;
+  --color-primary: #1a64f4;
+  --color-primary-text: #fff;
+  --color-primary-hover: #3a84ff;
+
+  --color-critical: #e74c3c;
+
+  /* Input */
+  --color-input-border: #2a2d2e;
+
+  /* For Side List */
+  --color-list-surface: #181818;
+  --color-list-hover: #2a2d2e;
+  --color-list-selected: #37373d;
+  --color-list-line-guide: #555;
+
+  /* For Table */
+  --color-table-grid: #333;
+  --color-table-change: #f6e58d;
+
+  --color-table-cell-number: #2980b9;
+  --color-table-cell-code: #95a5a6;
+
+  --color-table-row-selected: #37373d;
+  --color-table-row-removed: #ff4757;
+  --color-table-row-new: #27ae60;
+
+  /* For Scroll */
+  --color-scrollbar-track: #fff1;
+  --color-scrollbar: #fff1;
+  --color-scrollbar-hover: #fff3;
+
+  /* Splitter */
+  --color-splitter: #444;
+  --color-splitter-hover: #f39c12;
+
+  background: var(--color-surface);
+  color: var(--color-text);
+}
+
+@font-face {
+  font-family: 'CascadiaCode';
+  src: url(./../../assets/fonts/CascadiaCode.woff2) format('woff2');
+}
+
+@font-face {
+  font-family: 'OpenSans';
+  src: url(./../../assets/fonts/OpenSans-Regular.ttf) format('truetype');
+}
+
+@font-face {
+  font-family: 'OpenSans';
+  font-weight: bold;
+  src: url(./../../assets/fonts/OpenSans-Bold.ttf) format('truetype');
+}
+
+html,
+body {
+  font-family: 'OpenSans', sans-serif;
+  font-size: 13px;
+  padding: 0;
+  margin: 0;
+}
+
+.mono {
+  font-family: 'CascadiaCode', sans-serif;
+}
+
+.scroll::-webkit-scrollbar {
+  width: 13px;
+  height: 13px;
+}
+
+.scroll::-webkit-scrollbar-track {
+  background: var(--color-scrollbar-track);
+}
+
+.scroll::-webkit-scrollbar-thumb {
+  background: var(--color-scrollbar);
+}
+
+.scroll:hover::-webkit-scrollbar-thumb {
+  background: var(--color-scrollbar-hover);
+}
+
+hr {
+  border: 0;
+  background: var(--color-surface-hover);
+  height: 1px;
+}
+
+.cm-completionIcon-property::after {
+  content: '🆔' !important;
+}
+
+.cm-completionIcon-enum::after {
+  content: '❝' !important;
+}
+
+.cm-completionIcon-keyword::after {
+  content: '🔑' !important;
+}
+
+.cm-completionIcon-table::after {
+  display: block !important;
+  background-size: contain !important;
+  content: '' !important;
+  background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAABYgAAAWIBXyfQUwAAABl0RVh0U29mdHdhcmUAd3d3Lmlua3NjYXBlLm9yZ5vuPBoAAAMBSURBVHic7ZvNTxNBGId/MzulLUWkQqQkRJKGGpUYo4k3MSYeDPEj8YDx6+LJRC/6H3g2MXIy8UyMB08a8cLBGGM0HiQeEEwJES20BaE00FZYZseDYIROW0JlX2DnufXdnd1nfu1+vJsuYPA2TFfsHlQ1LaOpawuSH1xSvMVtqf+JYE7SbzlDyWjkybMOtrh2+aoA7r5MR5N56+lg1nd83ubacLYrdT5HdTTYHyN19uWerpZvK/W/k7zVN3PlQ9LqzSxyi8TQJcJ+R56M2Dd6zjb1AssB3Hk12dU/HujL22xHfeulCAqlzkTyFx9eiDxn914r0T+WmZvI+wLUYm7SWmsXTreF63kiO/XAa5MHgETeF5zITt7nyZzVTS1DxURBXOKpgthLLUJFKieaedZmO/qsX45ZmwkulSdO/FqkYuDUEtSYAKgFqDEBUAtQYwKgFqBG1AlF7UAKGxge8XQCnj8ETADUAtR4PgChKzbvaUCoNlh2YC5fQHpmtqgeba38FD09nUGu8GtVLRQMoLkxXHHsaCJZVKvGVxtAMOBHfai27AYdx9HWK40DgJnsXFHNJ8S6xuqoxtfzh4AJgFqAGs8HoD0JKqXgOOXvkJXSL680rtTY9eyz3PY26mt6AWoBakwA1ALUeD4A0wvoVja9gIcwAVALUOP5AEwvYHoBj2MCoBagxvMBaK8Ckcbwuu6tU9OZojpFL1CNrzaAgL8GuypsUEqprVP0AtX4ev4QMAEAKHqNZKN3ZFuZEnNa4ACKzirZ+dymC7lNiTklBVN4rxja1q48PvkTTQ27ISz9f6lL/UooegHHUZBS/8BjSUpMzWZLBKDesc9D8fMOYy82tOftDmfnGAAMDI+8BXCCWMdt3hw90H6KA4AQuAqGNLWRWzAgxS11HVi+DB5ub/8ByToBDJGauQHDoJToPBKLJf58/Id4PO7PObitFLsJYD+J4ObxlTH1OMTxKBaLLawUS74u8unLaJtlYZ9kyu+O3+ZgKbYgJb4fOxQdo3YxbEV+A0V6Y/BBlijFAAAAAElFTkSuQmCC') !important;
+  width: 20px !important;
+  height: 20px !important;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.cm-completionIcon-function::after,
+.cm-completionIcon-method::after,
+.cm-completionIcon-variable::after,
+.cm-completionIcon-namespace::after,
+.cm-completionIcon-interface::after {
+  content: '⚡' !important;
+}
+
+.cm-tooltip-autocomplete > ul > li {
+  display: flex;
+}
+
+.cm-tooltip-autocomplete > ul > li > .cm-completionIcon {
+  width: 1em !important;
+  display: flex;
+  align-self: center;
+  justify-content: center;
+}
+
+.cm-tooltip-autocomplete .cm-completionLabel {
+  flex-grow: 1;
+}
+
+.cm-tooltip-autocomplete .cm-completionDetail {
+  padding-left: 15px;
+}
+
+.cm-table-name {
+  color: #e84393;
+}
+
+.darl .cm-table-name {
+  color: #fd79a8;
+}
+
+.cm-table-name > span {
+  color: inherit !important;
+}
+
+.code-tooltip {
+  font-size: 0.8em;
+  margin-top: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.code-tooltip hr {
+  margin-top: 5px;
+  margin-bottom: 5px;
+}
+
+.code-tooltip p {
+  margin-bottom: 10px;
+}
+
+.code-tooltip pre {
+  padding: 10px;
+  background: #333;
+  border-radius: 5px;
+}
+
+.code-tooltip table {
+  margin-top: 10px;
+  border-collapse: collapse;
+}
+
+.code-tooltip td,
+.code-tooltip th {
+  padding: 5px;
+  text-align: left;
+  border: 2px solid #ccc;
+}
+
+.cm-tooltip-cursor {
+  overflow-y: auto;
+  max-height: 600px;
+  user-select: text;
+}

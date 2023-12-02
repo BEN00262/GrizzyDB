@@ -27,6 +27,7 @@ import { FeaturesGrid } from "./components/WhatWeOffer";
 import Analytics from "./components/Analytics";
 import { DashboardCreatorComp } from "../../components/Analytics";
 import TablesView from "../../components/Tables";
+import DatabaseScreen from "../../components/renderer/screens/DatabaseScreen";
 
 const Credential: React.FC<ICredential> = ({ credentialKey, value }) => {
   return (
@@ -172,8 +173,8 @@ export function ProvisionedDB({ credentials, _id }: IDatabaseDisplay) {
         }}
       >
         <JTab>ERD</JTab>
-        <JTab>Tables</JTab>
-        <JTab>Generative BI</JTab>
+        <JTab>Client</JTab>
+        {/* <JTab>Generative BI</JTab> */}
         <JTab>Credentials</JTab>
       </JTabList>
 
@@ -181,15 +182,22 @@ export function ProvisionedDB({ credentials, _id }: IDatabaseDisplay) {
         <Snapshots />
       </JTabPanel>
 
-      <JTabPanel value={1} sx={{ height: "75vh" }}>
-        <TablesView />
+      <JTabPanel value={1} sx={{ height: "75vh", border: "1px solid #efefef", borderRadius: "5px" }}>
+        <DatabaseScreen config={{
+          database: "",
+          user: "",
+          password: "",
+          host: "",
+          port: "",
+          type: "mysql"
+        }}/>
       </JTabPanel>
+
+      {/* <JTabPanel value={2} sx={{ height: "75vh" }}>
+        <DashboardCreatorComp />
+      </JTabPanel> */}
 
       <JTabPanel value={2} sx={{ height: "75vh" }}>
-        <DashboardCreatorComp />
-      </JTabPanel>
-
-      <JTabPanel value={3} sx={{ height: "75vh" }}>
         <div
           style={{
             height: "400px",

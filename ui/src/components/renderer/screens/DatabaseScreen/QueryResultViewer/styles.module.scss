@@ -1,0 +1,22 @@
+.result {
+  height: 100%;
+  white-space: nowrap;
+  display: flex;
+  flex-direction: column;
+  background: var(--color-surface);
+  color: var(--color-text);
+}
+
+.container {
+  flex-grow:  1;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+
+.queryLoading {
+  width: 100%;
+  height: 100%;
+  flex-direction: column;
+  display: flex;
+}
