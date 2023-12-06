@@ -1,0 +1,53 @@
+html {
+  font-size: 16px;
+  line-height: 1.5;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, 'Apple Color Emoji', Arial, sans-serif,
+    'Segoe UI Emoji', 'Segoe UI Symbol';
+  fill: currentcolor;
+  -webkit-font-smoothing: auto;
+  height: -webkit-fill-available;
+}
+
+body {
+  overflow: hidden;
+}
+
+body,
+div,
+nav,
+article,
+section,
+main,
+header,
+footer,
+input,
+form,
+table,
+fieldset,
+textarea,
+ul,
+li,
+span {
+  box-sizing: border-box;
+}
+
+.selection-area {
+  background: rgba(46, 115, 252, 0.11);
+  border-radius: 0.1em;
+}
+
+.pseudoAfter:after {
+  color: var(--pseudoAfter--color);
+  content: var(--pseudoAfter--content);
+}
+
+.tippy-box[data-theme~='tellery'] {
+  background-color: transparent;
+  color: none;
+}
+
+/* Safari default user-select is none */
+[contenteditable] {
+  -webkit-user-select: text;
+  user-select: text;
+}

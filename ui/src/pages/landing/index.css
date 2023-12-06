@@ -2,6 +2,17 @@ body{
     font-family: Open Sans,sans-serif;
   }
 
+  .credentials {
+    position: relative;
+  }
+
+  .credentials:hover {
+    background-color: #efefef;
+    padding: 10px;
+    border-radius: 2px;
+    cursor: pointer;
+  }
+
   .markdown > * {
     all: revert;
   }

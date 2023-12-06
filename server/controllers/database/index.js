@@ -26,38 +26,6 @@ import { generateApiKey } from "generate-api-key";
 import humanTime from "human-time";
 
 export class DatabaseController {
-    // methods to get and manipulate tables
-    static async getTables(req, res) {
-
-    }
-
-    static async deleteTable(req, res) {
-
-    }
-
-    // supports exports as sql insert statements --> choose a dialect and we will retain it | csv | json
-    static async exportTables(req, res) {
-
-    }
-
-
-    static async exportRows(req, res) {
-
-    }
-
-
-    static async deleteRows(req, res) {
-
-    }
-
-
-    static async getTableRows(req, res) {
-        
-    }
-
-
-
-
   static async create_folder(req, res) {
     try {
       const { name, databases_to_add_to_folder } = req.body;
@@ -175,7 +143,9 @@ export class DatabaseController {
         );
       }
 
-      const credentials = await GrizzyDatabaseEngine.provision_database(dialect);
+      const credentials = await GrizzyDatabaseEngine.provision_database(
+        dialect
+      );
 
       // save the credentials
       const database = await DatabaseModel.create({
@@ -190,7 +160,7 @@ export class DatabaseController {
         owner: req.user._id,
       });
 
-    //   branch to different paths depending on the selected template types
+      //   branch to different paths depending on the selected template types
       switch (selected_template) {
         case "sample":
           await GrizzyDatabaseEngine.push_schema_and_data_to_database(
@@ -716,8 +686,11 @@ export class DatabaseController {
         ).toString(CryptoJS.enc.Utf8)
       );
 
-      if (database.product_type === 'hosted') {
-        await GrizzyDatabaseEngine.delete_database(database.dialect, credentials);
+      if (database.product_type === "hosted") {
+        await GrizzyDatabaseEngine.delete_database(
+          database.dialect,
+          credentials
+        );
       }
 
       // delete the record

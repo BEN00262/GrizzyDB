@@ -2,7 +2,7 @@ import { SignInButton } from "@clerk/clerk-react";
 
 const LoginComponent = () => {
   return (
-    <SignInButton mode="modal" redirectUrl="http://localhost:5173/dashboard">
+    <SignInButton mode="modal" redirectUrl="/dashboard">
       <button
         style={{
           border: "1px solid #000",

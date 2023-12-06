@@ -7,27 +7,28 @@ import * as React from "react";
 import { Container } from "react-bootstrap";
 import { useQuery } from "react-query";
 import {
-    switch_active_database,
-    useGrizzyDBDispatch,
-    useGrizzyDBState
+  switch_active_database,
+  useGrizzyDBDispatch,
+  useGrizzyDBState,
 } from "../../context";
 import { ICredential, IDatabaseDisplay } from "../../context/types";
 import { get_monitor_installation_instructions } from "./api";
 import Hero from "./components/Hero";
 import "./index.css";
 
+import { useAuth } from "@clerk/clerk-react";
 import JTab, { tabClasses } from "@mui/joy/Tab";
 import JTabList from "@mui/joy/TabList";
 import JTabPanel from "@mui/joy/TabPanel";
 import JTabs from "@mui/joy/Tabs";
+import copy from "copy-to-clipboard";
+import { useNavigate } from "react-router";
+import BIComponent from "../../BI";
+import DatabaseScreen from "../../components/renderer/screens/DatabaseScreen";
 import { FooterSocial } from "./components/Footer";
 import Markdown from "./components/Markdown";
 import Snapshots from "./components/Snapshots";
 import { FeaturesGrid } from "./components/WhatWeOffer";
-import Analytics from "./components/Analytics";
-import { DashboardCreatorComp } from "../../components/Analytics";
-import TablesView from "../../components/Tables";
-import DatabaseScreen from "../../components/renderer/screens/DatabaseScreen";
 
 const Credential: React.FC<ICredential> = ({ credentialKey, value }) => {
   return (
@@ -49,6 +50,24 @@ const Credential: React.FC<ICredential> = ({ credentialKey, value }) => {
 };
 
 function Credentials({ credentials }: { credentials: ICredential[] }) {
+  const credentials_for_copy = React.useMemo(() => {
+    return credentials
+      .map(({ credentialKey, value }) => `${credentialKey} = ${value}`)
+      .join("\n");
+  }, [credentials]);
+
+  const [copied, setCopied] = React.useState(false);
+
+  React.useEffect(() => {
+    if (copied) {
+      const timeout = setTimeout(() => {
+        setCopied(false);
+      }, 1000);
+
+      return () => clearTimeout(timeout);
+    }
+  }, [copied]);
+
   return (
     <Container>
       <div
@@ -58,7 +77,23 @@ function Credentials({ credentials }: { credentials: ICredential[] }) {
           alignItems: "center",
         }}
       >
-        <div>
+        <div
+          className="credentials"
+          onClick={() => {
+            copy(credentials_for_copy);
+            setCopied(true);
+          }}
+        >
+          {copied ? (
+            <div
+              style={{
+                fontWeight: 700,
+                marginBottom: "10px",
+              }}
+            >
+              copied
+            </div>
+          ) : null}
           {credentials.map(({ credentialKey, value, isHidden }, position) => {
             return (
               <Credential
@@ -122,7 +157,6 @@ export function BringYourOwnDBUI({ _id }: IDatabaseDisplay) {
       </JTabList>
 
       <JTabPanel value={0} sx={{ height: "75vh" }}>
-        {/* <Visualizer database={_id} /> */}
         <Snapshots />
       </JTabPanel>
 
@@ -173,8 +207,8 @@ export function ProvisionedDB({ credentials, _id }: IDatabaseDisplay) {
         }}
       >
         <JTab>ERD</JTab>
-        <JTab>Client</JTab>
-        {/* <JTab>Generative BI</JTab> */}
+        <JTab disabled>Client</JTab>
+        <JTab disabled>Analytics</JTab>
         <JTab>Credentials</JTab>
       </JTabList>
 
@@ -182,22 +216,31 @@ export function ProvisionedDB({ credentials, _id }: IDatabaseDisplay) {
         <Snapshots />
       </JTabPanel>
 
-      <JTabPanel value={1} sx={{ height: "75vh", border: "1px solid #efefef", borderRadius: "5px" }}>
-        <DatabaseScreen config={{
-          database: "",
-          user: "",
-          password: "",
-          host: "",
-          port: "",
-          type: "mysql"
-        }}/>
+      <JTabPanel
+        value={1}
+        sx={{
+          height: "75vh",
+          border: "1px solid #efefef",
+          borderRadius: "5px",
+        }}
+      >
+        <DatabaseScreen
+          config={{
+            database: "",
+            user: "",
+            password: "",
+            host: "",
+            port: "",
+            type: "mysql",
+          }}
+        />
       </JTabPanel>
 
-      {/* <JTabPanel value={2} sx={{ height: "75vh" }}>
-        <DashboardCreatorComp />
-      </JTabPanel> */}
-
       <JTabPanel value={2} sx={{ height: "75vh" }}>
+        <BIComponent />
+      </JTabPanel>
+
+      <JTabPanel value={3} sx={{ height: "75vh" }}>
         <div
           style={{
             height: "400px",
@@ -269,6 +312,14 @@ export function LabTabs() {
 }
 
 const LandingPage = () => {
+  // check if we are signed in already and redirect to dashboard
+  const { isSignedIn } = useAuth();
+  const navigate = useNavigate();
+
+  if (isSignedIn) {
+    navigate("/dashboard", { replace: true });
+  }
+
   return (
     <div>
       <div

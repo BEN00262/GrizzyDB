@@ -15,3 +15,8 @@ export function get_monitor_installation_instructions(database_reference: string
 export function delete_database(databse_reference: string) {
     return axios.delete(`/database/${databse_reference}`);
 }
+
+
+export function move_to_folder(folder: string, database_reference: string) {
+    return axios.post(`/database/folder/move-to`, { folder, database_reference });
+}

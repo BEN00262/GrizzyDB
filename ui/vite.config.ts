@@ -20,6 +20,7 @@ export default defineConfig({
       libs: "/src/components/libs",
       drivers: "/src/components/drivers",
       dialects: "/src/components/dialects",
+      '@app': '/src/BI'
     },
   },
 })

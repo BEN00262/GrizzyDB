@@ -3,7 +3,7 @@ import Button from "@mui/material/Button";
 import { useState } from "react";
 import Col from "react-bootstrap/Col";
 import Row from "react-bootstrap/Row";
-import { useQuery } from "react-query";
+import { useMutation, useQuery, useQueryClient } from "react-query";
 import {
   initialize_databases,
   useGrizzyDBDispatch,
@@ -14,12 +14,154 @@ import ProvisionModal from "../../landing/components/Provision";
 import FolderOpenIcon from "@mui/icons-material/FolderOpen";
 import { Divider } from "@mui/material";
 import { LuNetwork } from "react-icons/lu";
+import { useDrop, useDrag } from "react-dnd";
+
+import { DndProvider } from "react-dnd";
+import { HTML5Backend } from "react-dnd-html5-backend";
+// import { Menu, Item, Separator, Submenu, useContextMenu } from 'react-contexify';
+// import 'react-contexify/ReactContexify.css';
+
 import { useNavigate, useParams } from "react-router-dom";
 import NotFoundSvg from "../../../assets/not_found.svg";
-import { IFolder } from "../../../context/types";
-import { get_my_databases } from "../../landing/api";
+import { IDatabaseDisplay, IFolder } from "../../../context/types";
+import { get_my_databases, move_to_folder } from "../../landing/api";
 import FileMoveComp from "../../landing/components/FileMove";
 import FolderCreateComp from "../../landing/components/FolderCreate";
+
+const DatabaseFolder = ({ folder }: { folder: IFolder }) => {
+  const navigate = useNavigate();
+
+  const [{ canDrop, isOver }, drop] = useDrop(() => ({
+    accept: "box",
+    drop: () => ({ name: folder.name, reference: folder._id }),
+    collect: (monitor) => ({
+      isOver: monitor.isOver(),
+      canDrop: monitor.canDrop(),
+    }),
+  }));
+
+  return (
+    <div
+      ref={drop}
+      style={{
+        border: "1px solid #efefef",
+        borderRadius: "5px",
+        height: "200px",
+        padding: "5px",
+        boxSizing: "border-box",
+        cursor: "pointer",
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "center",
+        gap: "5px",
+        alignItems: "center",
+        margin: "20px auto",
+        overflow: "hidden",
+        whiteSpace: "nowrap",
+        maxWidth: "100%",
+        textOverflow: "ellipsis",
+      }}
+      onClick={() => {
+        navigate(`/dashboard/folder/${folder._id}`);
+      }}
+    >
+      <FolderOpenIcon
+        style={{
+          height: "24px",
+          width: "24px",
+        }}
+      />
+      <span className="action-text">folder</span>
+      <br />
+      <div>
+        <span className="action-text">{folder.name}</span>
+      </div>
+    </div>
+  );
+};
+
+interface DropResult {
+  name: string;
+  reference: string;
+}
+
+const DatabaseFile = ({ database }: { database: IDatabaseDisplay }) => {
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+
+  const move_to_folder_mutation = useMutation(({ folder, file }: { folder: string, file: string }) => {
+    return move_to_folder(folder, file)
+  }, {
+    onSuccess: (data) => {
+      // invalidate the data
+      queryClient.invalidateQueries(['my-databases'])
+    }
+  })
+
+  const [{ isDragging }, drag] = useDrag(() => ({
+    type: "box",
+    item: { name: database.name, reference: database._id },
+    end: (item, monitor) => {
+      const dropResult = monitor.getDropResult<DropResult>();
+      if (item && dropResult) {
+        // alert(`You dropped ${item.name} into ${dropResult.name} ${dropResult.reference}!`);
+        move_to_folder_mutation.mutate({folder: dropResult.reference, file: item.reference })
+      }
+    },
+    collect: (monitor) => ({
+      isDragging: monitor.isDragging(),
+      handlerId: monitor.getHandlerId(),
+    }),
+  }));
+
+  return (
+    <div
+      ref={drag}
+      style={{
+        border: "1px solid #efefef",
+        borderRadius: "5px",
+        height: "200px",
+        padding: "5px",
+        boxSizing: "border-box",
+        cursor: "pointer",
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "center",
+        gap: "5px",
+        alignItems: "center",
+        margin: "20px auto",
+        overflow: "hidden",
+        whiteSpace: "nowrap",
+        maxWidth: "100%",
+        textOverflow: "ellipsis",
+      }}
+      onClick={() => {
+        navigate(`/dashboard/${database._id}`);
+      }}
+    >
+      {database.product_type === "bring_your_own" ? (
+        <LuNetwork
+          style={{
+            height: "24px",
+            width: "24px",
+          }}
+        />
+      ) : (
+        <StorageIcon
+          style={{
+            height: "24px",
+            width: "24px",
+          }}
+        />
+      )}
+      <span className="action-text">{database.dialect}</span>
+      <br />
+      <div>
+        <span className="action-text">{database.name}</span>
+      </div>
+    </div>
+  );
+};
 
 export default function Databases() {
   const [isProvisionModalopen, setIsProvisionModalOpen] = useState(false);
@@ -29,8 +171,6 @@ export default function Databases() {
   const [folders, setFolders] = useState<IFolder[]>([]);
 
   const params = useParams();
-
-  const navigate = useNavigate();
 
   useQuery(
     ["my-databases", params?.folder_id],
@@ -72,98 +212,21 @@ export default function Databases() {
           margin: "20px auto",
         }}
       />
-      <div>
+      <DndProvider backend={HTML5Backend}>
         <Row>
           {databases.length || folders.length ? (
             <>
               {folders.map((folder, position) => {
                 return (
                   <Col xs={6} md={3} lg={2} key={position}>
-                    <div
-                      style={{
-                        border: "1px solid #efefef",
-                        borderRadius: "5px",
-                        height: "200px",
-                        padding: "5px",
-                        boxSizing: "border-box",
-                        cursor: "pointer",
-                        display: "flex",
-                        flexDirection: "column",
-                        justifyContent: "center",
-                        gap: "5px",
-                        alignItems: "center",
-                        margin: "20px auto",
-                        overflow: "hidden",
-                        whiteSpace: "nowrap",
-                        maxWidth: "100%",
-                        textOverflow: "ellipsis",
-                      }}
-                      onClick={() => {
-                        navigate(`/dashboard/folder/${folder._id}`);
-                      }}
-                    >
-                      <FolderOpenIcon
-                        style={{
-                          height: "24px",
-                          width: "24px",
-                        }}
-                      />
-                      <span className="action-text">folder</span>
-                      <br />
-                      <div>
-                        <span className="action-text">{folder.name}</span>
-                      </div>
-                    </div>
+                    <DatabaseFolder folder={folder} />
                   </Col>
                 );
               })}
               {databases.map((database, position) => {
                 return (
                   <Col xs={6} md={3} lg={2} key={position}>
-                    <div
-                      style={{
-                        border: "1px solid #efefef",
-                        borderRadius: "5px",
-                        height: "200px",
-                        padding: "5px",
-                        boxSizing: "border-box",
-                        cursor: "pointer",
-                        display: "flex",
-                        flexDirection: "column",
-                        justifyContent: "center",
-                        gap: "5px",
-                        alignItems: "center",
-                        margin: "20px auto",
-                        overflow: "hidden",
-                        whiteSpace: "nowrap",
-                        maxWidth: "100%",
-                        textOverflow: "ellipsis",
-                      }}
-                      onClick={() => {
-                        navigate(`/dashboard/${database._id}`);
-                      }}
-                    >
-                      {database.product_type === "bring_your_own" ? (
-                        <LuNetwork
-                          style={{
-                            height: "24px",
-                            width: "24px",
-                          }}
-                        />
-                      ) : (
-                        <StorageIcon
-                          style={{
-                            height: "24px",
-                            width: "24px",
-                          }}
-                        />
-                      )}
-                      <span className="action-text">{database.dialect}</span>
-                      <br />
-                      <div>
-                        <span className="action-text">{database.name}</span>
-                      </div>
-                    </div>
+                    <DatabaseFile database={database} />
                   </Col>
                 );
               })}
@@ -188,7 +251,7 @@ export default function Databases() {
             </div>
           )}
         </Row>
-      </div>
+      </DndProvider>
     </>
   );
 }

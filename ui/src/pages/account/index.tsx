@@ -112,7 +112,11 @@ export function AccountsPage() {
         </Navbar.Section>
         <Navbar.Section>
           <Stack justify="center" spacing={0}>
-            <UserButton />
+            <UserButton
+              afterSignOutUrl="/"
+              signInUrl="/"
+              afterMultiSessionSingleSignOutUrl="/"
+            />
           </Stack>
         </Navbar.Section>
       </Navbar>

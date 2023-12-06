@@ -1,5 +1,4 @@
 import { useEffect } from "react";
-import { GoogleOAuthProvider } from "@react-oauth/google";
 import {
   GrizzyDBProvider,
   change_fingerprint,
@@ -7,23 +6,20 @@ import {
 } from "./context";
 import LandingPage from "./pages/landing";
 
+import {
+  ClerkLoaded,
+  ClerkProvider,
+  RedirectToSignIn,
+  SignedIn,
+  SignedOut,
+} from "@clerk/clerk-react";
 import { getCurrentBrowserFingerPrint } from "@rajesh896/broprint.js";
 import { QueryClient, QueryClientProvider } from "react-query";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
-import {
-  ClerkProvider,
-  SignedIn,
-  SignedOut,
-  RedirectToSignIn,
-  SignIn,
-  SignUp,
-  UserButton,
-  ClerkLoaded,
-} from "@clerk/clerk-react";
-import { AccountsPage } from "./pages/account";
-import DatabaseView from "./pages/database";
-import DatabaseDashboard from "./pages/account/components/Dashboard";
 import AuthTokenComp from "./components/Auth";
+import { AccountsPage } from "./pages/account";
+import DatabaseDashboard from "./pages/account/components/Dashboard";
+import DatabaseView from "./pages/database";
 
 // a function to get the user fingerprint
 const FingerPrintUser = () => {
@@ -38,14 +34,13 @@ const FingerPrintUser = () => {
   return null;
 };
 
-
 export const GrizzyQueryClient = new QueryClient();
 
 function App() {
   return (
     <ClerkProvider publishableKey={import.meta.env.VITE_CLERK_PUBLISHABLE_KEY}>
       <ClerkLoaded>
-        <AuthTokenComp/>
+        <AuthTokenComp />
         <GrizzyDBProvider>
           <FingerPrintUser />
           <QueryClientProvider client={GrizzyQueryClient}>
@@ -69,7 +64,7 @@ function App() {
                     path="/dashboard/folder/:folder_id"
                     element={<DatabaseDashboard />}
                   />
-                  <Route path="/dashboard/:id" element={<DatabaseView />} />
+                  <Route path="/dashboard/:id/*" element={<DatabaseView />} />
                 </Route>
               </Routes>
             </BrowserRouter>

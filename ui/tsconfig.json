@@ -19,14 +19,20 @@
     // "noUnusedLocals": true,
     // "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
-    "baseUrl": ".",
+    "forceConsistentCasingInFileNames": true,
+    "noImplicitAny": false,
+    "allowSyntheticDefaultImports": true,
+    "importsNotUsedAsValues": "remove",
+    "allowUnreachableCode": true,
+    "baseUrl": "./src",
     "paths": {
       "src/*": ["./src/*"],
       "renderer":["./src/components/renderer/*"],
       "types":["./src/components/types/*"],
       "libs":["./src/components/libs/*"],
       "drivers":["./src/components/drivers/*"],
-      "dialects":["./src/components/dialects/*"]
+      "dialects":["./src/components/dialects/*"],
+      "@app/*": ["./src/BI/*"]
     }
   },
   "include": ["src"],
