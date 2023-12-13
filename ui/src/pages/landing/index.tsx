@@ -3,6 +3,7 @@ import TabList from "@mui/lab/TabList";
 import TabPanel from "@mui/lab/TabPanel";
 import Box from "@mui/material/Box";
 import Tab from "@mui/material/Tab";
+import Tooltip from "@mui/material/Tooltip";
 import * as React from "react";
 import { Container } from "react-bootstrap";
 import { useQuery } from "react-query";
@@ -23,11 +24,10 @@ import JTabPanel from "@mui/joy/TabPanel";
 import JTabs from "@mui/joy/Tabs";
 import copy from "copy-to-clipboard";
 import { useNavigate } from "react-router";
-import BIComponent from "../../BI";
-import DatabaseScreen from "../../components/renderer/screens/DatabaseScreen";
 import { FooterSocial } from "./components/Footer";
 import Markdown from "./components/Markdown";
 import Snapshots from "./components/Snapshots";
+import TimestepSnapshotComp from "./components/TimestepSnapshot";
 import { FeaturesGrid } from "./components/WhatWeOffer";
 
 const Credential: React.FC<ICredential> = ({ credentialKey, value }) => {
@@ -207,8 +207,13 @@ export function ProvisionedDB({ credentials, _id }: IDatabaseDisplay) {
         }}
       >
         <JTab>ERD</JTab>
-        <JTab disabled>Client</JTab>
-        <JTab disabled>Analytics</JTab>
+        <JTab disabled>Snapshots</JTab>
+        <Tooltip title="Coming soon" arrow>
+          <JTab disabled>Client</JTab>
+        </Tooltip>
+        <Tooltip title="Coming soon" arrow>
+          <JTab disabled>Analytics</JTab>
+        </Tooltip>
         <JTab>Credentials</JTab>
       </JTabList>
 
@@ -216,15 +221,19 @@ export function ProvisionedDB({ credentials, _id }: IDatabaseDisplay) {
         <Snapshots />
       </JTabPanel>
 
+      <JTabPanel value={1} sx={{ height: "75vh" }}>
+        <TimestepSnapshotComp />
+      </JTabPanel>
+
       <JTabPanel
-        value={1}
+        value={2}
         sx={{
           height: "75vh",
           border: "1px solid #efefef",
           borderRadius: "5px",
         }}
       >
-        <DatabaseScreen
+        {/* <DatabaseScreen
           config={{
             database: "",
             user: "",
@@ -233,14 +242,14 @@ export function ProvisionedDB({ credentials, _id }: IDatabaseDisplay) {
             port: "",
             type: "mysql",
           }}
-        />
-      </JTabPanel>
-
-      <JTabPanel value={2} sx={{ height: "75vh" }}>
-        <BIComponent />
+        /> */}
       </JTabPanel>
 
       <JTabPanel value={3} sx={{ height: "75vh" }}>
+        {/* <BIComponent /> */}
+      </JTabPanel>
+
+      <JTabPanel value={4} sx={{ height: "75vh" }}>
         <div
           style={{
             height: "400px",

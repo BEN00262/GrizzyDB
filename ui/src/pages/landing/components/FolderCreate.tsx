@@ -276,7 +276,6 @@ const FolderCreateComp = () => {
 
   return (
     <>
-      {/* <Button variant="text" size="small" onClick={handleOpen} color="primary">sql / AI editor</Button> */}
       <Button
         variant="outlined"
         className="action-text"

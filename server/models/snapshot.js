@@ -14,6 +14,10 @@ const snapshotSchema = new mongoose.Schema({
         type: String,
     },
 
+    url_to_dump: {
+        type: String,
+    },
+
     database: {
         type: mongoose.Types.ObjectId,
         ref: 'Database'

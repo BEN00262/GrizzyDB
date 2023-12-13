@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import ReactFlow, {
   Background,
   ControlButton,
@@ -57,12 +57,14 @@ import { get_database_diff } from "../../pages/landing/components/api";
 
 interface FlowProps {
   currentDatabase: DatabaseConfig;
+  reload: number;
 }
 
 interface VisualizerProps {
   database?: string;
   main?:string;
   base?:string;
+  hide_minmap?:boolean;
 }
 
 const Flow: React.FC<FlowProps> = (props: FlowProps) => {
@@ -274,7 +276,7 @@ const Flow: React.FC<FlowProps> = (props: FlowProps) => {
 
       onNodesChange(nodeChanges);
     },
-    [onNodesChange, setEdges, nodes, edges, currentDatabase]
+    [onNodesChange, setEdges, nodes, edges, currentDatabase, props.reload]
   )
 
   // we will not support full screen views in the demo version
@@ -348,16 +350,23 @@ const Visualizer: React.FC<VisualizerProps> = (props: VisualizerProps) => {
     tablePositions: {}
   } as DatabaseConfig);
 
-  const { isLoading } = useQuery(['database-schema', props.database, props.main, props.base], () => {
+  const [reload, setReload] = useState(0);
+
+  const { isLoading, data: database_config } = useQuery(['database-schema', props.database, props.main, props.base], () => {
     return props.database ? get_database_schema(props.database ?? "") : get_database_diff(props.main ?? "", props.base ?? "")
   }, {
     enabled: !!props.database || !!props.main || !!props.base,
     refetchOnMount: true,
-    refetchOnWindowFocus: true,
-    onSuccess: database_config => {
+    refetchOnWindowFocus: true
+  });
+
+  useEffect(() => {
+    console.log({ database_config })
+    if (database_config && !isLoading) {
+      setReload(Date.now())
       setCurrentDatabase(database_config);
     }
-  });
+  }, [database_config, isLoading])
 
   if (isLoading) {
     return (
@@ -372,7 +381,7 @@ const Visualizer: React.FC<VisualizerProps> = (props: VisualizerProps) => {
           animationData={networkLoader} 
           loop={true}
           style={{
-            height: "200px"
+            height: "150px"
           }} 
         />
       </div>
@@ -381,10 +390,8 @@ const Visualizer: React.FC<VisualizerProps> = (props: VisualizerProps) => {
 
   return (
     <ReactFlowProvider>
-      <Flow
-        currentDatabase={currentDatabase}
-      />
-      <MiniMap/>
+      <Flow currentDatabase={currentDatabase} reload={reload}/>
+      { props.hide_minmap ? null : <MiniMap/> }
     </ReactFlowProvider>
   )
 };

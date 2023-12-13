@@ -233,7 +233,7 @@ const SQLEditorComp = () => {
 
   return (
     <div>
-      <Button variant="text" size="small" onClick={handleOpen} color="primary">sql / AI editor</Button>
+      <Button variant="text" size="small" onClick={handleOpen} color="primary">sql / ai editor</Button>
       <Modal
         open={open}
         onClose={handleClose}

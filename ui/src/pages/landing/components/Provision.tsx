@@ -32,7 +32,7 @@ import {
   provision_database,
 } from "./api";
 
-const DBCard: React.FC<{
+export const DBCard: React.FC<{
   database: IDatabase;
   selected_dialect: DBDialect;
   onSelected: () => void;

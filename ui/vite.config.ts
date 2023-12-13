@@ -15,12 +15,26 @@ export default defineConfig({
   // },
   resolve: {
     alias: {
-      renderer: "/src/components/renderer",
-      types: "/src/components/types",
-      libs: "/src/components/libs",
-      drivers: "/src/components/drivers",
-      dialects: "/src/components/dialects",
-      '@app': '/src/BI'
+      renderer: "/src/components/renderer/*",
+      types: "/src/components/types/*",
+      libs: "/src/components/libs/*",
+      drivers: "/src/components/drivers/*",
+      dialects: "/src/components/dialects/*",
+      '@app': '/src/BI/*'
+    },
+  },
+
+  build: {
+    manifest: true,
+    rollupOptions: {
+      external: [
+        "/src/components/renderer/*",
+        "/src/components/types/*",
+        "/src/components/libs/*",
+        "/src/components/drivers/*",
+        "/src/components/dialects/*",
+        "/src/BI/*"
+      ],
     },
   },
 })
