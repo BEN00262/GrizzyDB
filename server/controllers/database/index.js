@@ -24,6 +24,7 @@ import md5 from "md5";
 import { nanoid } from "nanoid";
 import { generateApiKey } from "generate-api-key";
 import humanTime from "human-time";
+import { sendToSnapshotGeneratorQueue } from "../../rabbitmq/client.js";
 
 export class DatabaseController {
   // support for sniffing databases given a connection
@@ -48,22 +49,16 @@ export class DatabaseController {
       const { parent_folder } = req.params; // might be relevant i guess :)
       let { credentials, dialect, databases_selected = [] } = req.body;
 
-      // if database selected is nothing
-      // do we assume they meant all the available databases under the connection ?
-      // if database selected is one --> who cares
-
       if (!databases_selected.length) {
-        // get all the databases
         databases_selected = await GrizzyDatabaseEngine.get_databases_given_credentials(
           dialect, credentials
         );
       }
 
       if (databases_selected.length === 1) {
-        // fire a reload here
         const database = databases_selected[0];
 
-        await DatabaseModel.create({
+        const created_database = await DatabaseModel.create({
           name: database,
           product_type: "hosted", // not really hosted bu we can use this
           dialect,
@@ -76,6 +71,19 @@ export class DatabaseController {
           ...(parent_folder ? { parent: parent_folder } : {}),
           owner: req.user._id,
         });
+
+        // create a snapshot
+        const snapshot = await SnapshotModel.create({
+          status: 'scheduled',
+          checksum: md5(`${Date.now}`), // this is a placeholder checksum
+          database: created_database._id,
+          owner: req.user._id
+        });
+
+        await sendToSnapshotGeneratorQueue({ 
+          database_id: created_database._id,
+          snapshot_id: snapshot._id
+        });
       } else {
         const folder = await FolderModel.create({
           name: `${credentials.DB_USER}-${Date.now()}`,
@@ -84,9 +92,9 @@ export class DatabaseController {
         });
 
         // create the databases :)
-        await Promise.allSettled(
+        const databases = (await Promise.allSettled(
           databases_selected.map(async database => {
-            await DatabaseModel.create({
+            return await DatabaseModel.create({
               name: database,
               product_type: "hosted", // not really hosted bu we can use this
               dialect,
@@ -99,6 +107,12 @@ export class DatabaseController {
               folder: folder._id,
               owner: req.user._id,
             });
+          })
+        ))?.map(({ value }) => value)?.filter(u => u);
+
+        await Promise.allSettled(
+          databases.map(async database => {
+            await sendToSnapshotGeneratorQueue({ database_id: database._id });
           })
         )
       }
@@ -203,7 +217,6 @@ export class DatabaseController {
       if (selected_template === "bring_your_own") {
         // we dont have credentials at this point
         const database = await DatabaseModel.create({
-          // we need to pass the name somehow
           name: `schema-${nanoid(16)}`,
           product_type: "bring_your_own",
           dialect,
@@ -275,23 +288,16 @@ export class DatabaseController {
           break;
       }
 
-      // create snapshot
-      // FIXME: This should be fired off to a worker / rabbitmq perhaps
-
-      const schema_generated = JSON.stringify(
-        await GrizzyDatabaseEngine.export_database_schema(
-          database.dialect,
-          credentials
-        )
-      );
-
-      let schema_version_checksum = md5(schema_generated);
-
-      await SnapshotModel.create({
-        checksum: schema_version_checksum,
+      const snapshot = await SnapshotModel.create({
+        status: 'scheduled',
+        checksum: md5(`${Date.now}`), // this is a placeholder checksum
         database: database._id,
-        owner: req.user._id,
-        snapshot: LzString.compressToBase64(schema_generated),
+        owner: req.user._id
+      });
+
+      await sendToSnapshotGeneratorQueue({ 
+        database_id: database._id,
+        snapshot_id: snapshot._id
       });
 
       return massage_response(

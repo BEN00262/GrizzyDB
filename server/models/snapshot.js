@@ -14,8 +14,20 @@ const snapshotSchema = new mongoose.Schema({
         type: String,
     },
 
+    // useful for when we store your data
     url_to_dump: {
         type: String,
+    },
+
+    status: {
+        type: String,
+        enum: ['scheduled', 'generating', 'done', 'failed'],
+        default: 'done'
+    },
+
+    // only relevant incase the status is marked as being failed
+    failure_reason: {
+        type: String
     },
 
     database: {
