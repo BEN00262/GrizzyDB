@@ -17,6 +17,18 @@ router.post(
 
 router.use([EnsureIsAuthenticated]);
 
+// used for drop downs
+router.post(
+  '/available',
+  DatabaseController.get_all_databases_with_credentials
+);
+
+// used to carry out the procedure
+router.post(
+  '/connect-to-external-database/:parent_folder?',
+  DatabaseController.import_database_from_external_source
+);
+
 router.post("/folder/move-to", DatabaseController.move_to_folder);
 router.post("/folder/move-out", DatabaseController.move_out_of_folder);
 router.post("/folder/:parent_folder?", DatabaseController.create_folder);
@@ -47,6 +59,7 @@ router.get(
   "/diffs/:main_schema/:base_schema?",
   DatabaseController.generate_schema_diffs
 );
+
 router.get("/:database_reference", DatabaseController.get_database);
 router.put("/:database_reference", DatabaseController.update_database_metadata);
 router.delete("/:database_reference", DatabaseController.delete_database);

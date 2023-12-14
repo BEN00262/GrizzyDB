@@ -144,6 +144,33 @@ export class GrizzyDatabaseEngine {
         }
     }
 
+    static async get_databases_given_credentials(dialect, credentials = {}) {
+        if (!Object.keys(credentials).length) {
+            throw new GrizzyDBException("Invalid credentials");
+        }
+
+        const schema = templates[dialect];
+
+        if (!schema) {
+            return []
+        }
+
+        // try to connect then query for the databases
+        const sequelize = new Sequelize(schema.base_database, credentials.DB_USER, credentials.DB_PASSWORD, {
+            host: credentials.DB_HOST,
+            logging: false,
+            dialect: dialect === 'mariadb' ? 'mysql' : dialect /* weird kink fix it later */, /* one of 'mysql' | 'postgres' | 'sqlite' | 'mariadb' | 'mssql' | 'db2' | 'snowflake' | 'oracle' */
+        });
+
+        const databases = (await sequelize.query(schema.list_databases))?.[0];
+
+        return [
+            ...new Set(
+                databases.map(database =>  Object.values(database)).flat().filter(u => u)
+            )
+        ]
+    }
+
     // generate REST endpoints for a given database --> for now it will be slow af but we will imporve on it
     static async generate_rest_endpoints(dialect, credentials) {
         // get the structure of the database --> generate the data

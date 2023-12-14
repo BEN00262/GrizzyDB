@@ -26,6 +26,89 @@ import { generateApiKey } from "generate-api-key";
 import humanTime from "human-time";
 
 export class DatabaseController {
+  // support for sniffing databases given a connection
+  // used by drop down to allow user to select dbs they want to import
+  static async get_all_databases_with_credentials(req, res) {
+    try {
+      const { credentials, dialect } = req.body;
+
+      return massage_response({
+        databases: await GrizzyDatabaseEngine.get_databases_given_credentials(
+          dialect, credentials
+        )
+      }, res);
+    } catch (error) {
+      return massage_error(error, res);
+    }
+  }  
+
+
+  static async import_database_from_external_source(req, res) {
+    try {
+      const { parent_folder } = req.params; // might be relevant i guess :)
+      let { credentials, dialect, databases_selected = [] } = req.body;
+
+      // if database selected is nothing
+      // do we assume they meant all the available databases under the connection ?
+      // if database selected is one --> who cares
+
+      if (!databases_selected.length) {
+        // get all the databases
+        databases_selected = await GrizzyDatabaseEngine.get_databases_given_credentials(
+          dialect, credentials
+        );
+      }
+
+      if (databases_selected.length === 1) {
+        // fire a reload here
+        const database = databases_selected[0];
+
+        await DatabaseModel.create({
+          name: database,
+          product_type: "hosted", // not really hosted bu we can use this
+          dialect,
+
+          credentials: CryptoJS.AES.encrypt(
+            JSON.stringify({ ...credentials, DB_NAME: database }),
+            process.env.MASTER_AES_ENCRYPTION_KEY
+          ),
+
+          ...(parent_folder ? { parent: parent_folder } : {}),
+          owner: req.user._id,
+        });
+      } else {
+        const folder = await FolderModel.create({
+          name: `${credentials.DB_USER}-${Date.now()}`,
+          owner: req.user._id,
+          ...(parent_folder ? { parent: parent_folder } : {}),
+        });
+
+        // create the databases :)
+        await Promise.allSettled(
+          databases_selected.map(async database => {
+            await DatabaseModel.create({
+              name: database,
+              product_type: "hosted", // not really hosted bu we can use this
+              dialect,
+
+              credentials: CryptoJS.AES.encrypt(
+                JSON.stringify({ ...credentials, DB_NAME: database }),
+                process.env.MASTER_AES_ENCRYPTION_KEY
+              ),
+
+              folder: folder._id,
+              owner: req.user._id,
+            });
+          })
+        )
+      }
+
+      return massage_response({ status: true }, res);
+    } catch (error) {
+      return massage_error(error, res);
+    }
+  }
+
   static async create_folder(req, res) {
     try {
       const { name, databases_to_add_to_folder } = req.body;
@@ -193,6 +276,8 @@ export class DatabaseController {
       }
 
       // create snapshot
+      // FIXME: This should be fired off to a worker / rabbitmq perhaps
+
       const schema_generated = JSON.stringify(
         await GrizzyDatabaseEngine.export_database_schema(
           database.dialect,

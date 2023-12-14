@@ -8,6 +8,9 @@ export const templates = {
             // "FLUSH PRIVILEGES;"
         ],
 
+        list_databases: "SELECT datname FROM pg_database;",
+        base_database: "postgres",
+
         // used to get schema version on a high scale
         schema_version: "SELECT table_name, column_name, data_type FROM information_schema.columns WHERE table_schema = 'public';",
 
@@ -23,6 +26,9 @@ export const templates = {
             "FLUSH PRIVILEGES;"
         ],
 
+        list_databases: "SHOW DATABASES;",
+        base_database: "mysql",
+
         schema_version: "SELECT table_name, column_name, data_type FROM information_schema.columns WHERE table_schema = DATABASE();",
 
         triggers: []
@@ -35,6 +41,9 @@ export const templates = {
             "GRANT ALL PRIVILEGES ON {{database_name}}.* TO '{{database_user}}'@'%';",
             "FLUSH PRIVILEGES;"
         ],
+
+        list_databases: "SHOW DATABASES;",
+        base_database: "mysql",
 
         schema_version: "SELECT table_name, column_name, data_type FROM information_schema.columns WHERE table_schema = DATABASE();",
 
