@@ -37,6 +37,7 @@ router.get(
   "/schema/:database_reference",
   DatabaseController.export_database_schema
 );
+
 router.post("/query/:database_reference", DatabaseController.query_database);
 router.post("/:parent_folder?", DatabaseController.provision_database);
 router.get("/list/:folder?", DatabaseController.get_databases);

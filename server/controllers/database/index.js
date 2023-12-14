@@ -569,8 +569,8 @@ export class DatabaseController {
         database: database_reference,
         owner: req.user._id,
       })
-        .select("_id checksum createdAt updatedAt")
-        .sort({ _id: -1 /* descending order latest to oldest */ })
+        .select("_id checksum status failure_reason createdAt updatedAt")
+        .sort({ updatedAt: -1 /* descending order latest to oldest */ })
         .lean();
 
       return massage_response(

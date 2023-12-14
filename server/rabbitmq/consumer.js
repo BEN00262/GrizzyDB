@@ -5,7 +5,7 @@ DotEnv.config({
     path: FindConfig('.env')
 });
 
-import amqp from 'amqplib/callback_api';
+import amqp from 'amqplib/callback_api.js';
 import CryptoJS from "crypto-js";
 import LzString from "lz-string";
 import {

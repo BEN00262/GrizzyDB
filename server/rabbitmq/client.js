@@ -1,4 +1,4 @@
-import amqp from 'amqplib/callback_api';
+import amqp from 'amqplib/callback_api.js';
 
 export const sendToSnapshotGeneratorQueue = ({ database_id, snapshot_id }) => new Promise((resolve,reject) => {
     amqp.connect(process.env.AMQP_SERVER_URI, (error0, connection) => {
