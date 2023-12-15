@@ -187,6 +187,13 @@ export class GrizzyDatabaseEngine {
 
     }
 
+    // we get the neweset schema compare it to point in time and generate migrations to arrive
+    // at the point we wanna be
+    // run the migrations against the specific database ( that should be easy )
+    static async generate_migrations_from_schema_diffs() {
+
+    }
+
     static generate_schema_diffs(base_schema, compare_schema) {
         const processed_tables = [];
 

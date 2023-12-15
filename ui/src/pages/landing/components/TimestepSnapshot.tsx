@@ -52,7 +52,7 @@ const TimestepPoint = ({
         </div>
       </div>
 
-      {isClicked && !snapshot.status || snapshot.status === 'done' ? (
+      {isClicked && (!snapshot.status || snapshot.status === 'done') ? (
         <div
           style={{
             height: "550px",
@@ -121,7 +121,7 @@ const TimestepSnapshotComp = () => {
             key={index}
             snapshot={snapshot}
             isClicked={index === activeTimeStep}
-            onClick={() => setActiveTimestep(index)}
+            onClick={() => setActiveTimestep(index === activeTimeStep ? -1 : index)}
           />
         );
       })}

@@ -299,7 +299,7 @@ const Flow: React.FC<FlowProps> = (props: FlowProps) => {
     //     console.error(error)
     //   });
     // } else {
-    //   var element = document.querySelector("body");
+    //   const element = document.querySelector("body");
 
     //   // make the element go to full-screen mode
     //   element && element.requestFullscreen()

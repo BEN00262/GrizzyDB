@@ -68,6 +68,10 @@ function NavbarLink({ icon: Icon, label, active, onClick }: NavbarLinkProps) {
       <UnstyledButton
         onClick={onClick}
         className={cx(classes.link, { [classes.active]: active })}
+        style={{
+          color: "black",
+          backgroundColor: "#efefef"
+        }}
       >
         <Icon size="1.2rem" stroke={1.5} />
       </UnstyledButton>
