@@ -22,6 +22,7 @@ export interface ISnapshot {
     createdAt: Date
     updatedAt: Date
     humanTime: string
+    status: 'scheduled' | 'generating' | 'done' | 'failed'
 }
 
 export interface IFolder {
@@ -56,7 +57,7 @@ export interface ISampleTemplate {
     sql_statements: string
 }
 
-export type Template = 'custom' | 'sample' | 'none' | 'bring_your_own'
+export type Template = 'custom' | 'sample' | 'none' | 'bring_your_own' | 'external'
 
 export interface IDatabaseTemplate {
     dialect: DBDialect;
@@ -69,4 +70,27 @@ export interface IDatabaseTemplate {
 export interface IDBQuery {
     query: string
     mode: 'sql' | 'text' /* this is an ai generation stuff */
+}
+
+export interface IQuickLinkCreate {
+    quick_links: {
+        database: string;
+    }[];
+}
+
+export interface IQuickLinkData {
+    position: number;
+    _id: string;
+    database: IDatabaseDisplay;
+}
+
+export interface IQuickLinkUpdate {
+    position: number;
+    _id: string;
+    database: string;
+}
+
+export interface ISearchResult {
+    databases: IDatabaseDisplay[];
+    folders: IFolder[];
 }

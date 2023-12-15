@@ -3,6 +3,7 @@ import {
   DatabaseModel,
   DatabaseProvisionModel,
   FolderModel,
+  QuickAccessModel,
   SnapshotModel,
 } from "../../models/index.js";
 
@@ -27,6 +28,152 @@ import humanTime from "human-time";
 import { sendToSnapshotGeneratorQueue } from "../../rabbitmq/client.js";
 
 export class DatabaseController {
+  static async search_files_and_folders(req, res) {
+    // we need a couple of stuff -- i guess
+
+    try {
+      const { query } = req.query;
+
+      if (!query) {
+        return massage_response({
+          databases: [],
+          folders: []
+        }, res);
+      }
+
+      // use $search now
+      const [databases, folders] = await Promise.all([
+        DatabaseModel.aggregate([
+          {
+            $search: {
+              compound: {
+                should: [
+                  {
+                    text: {
+                      query,
+                      path: 'name',
+                      fuzzy: { maxEdits: 2 }
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        ]),
+
+        FolderModel.aggregate([
+          {
+            $search: {
+              compound: {
+                should: [
+                  {
+                    text: {
+                      query,
+                      path: 'name',
+                      fuzzy: { maxEdits: 2 }
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        ])
+      ]);
+
+      return massage_response({ databases, folders }, res);
+    } catch (error) {
+      return massage_error(error, res);
+    }
+  }
+
+  static async add_to_quick_access(req, res) {
+    try {
+      let { quick_links } = req.body;
+
+      // can get a bunch at the same time
+      const last_record = await QuickAccessModel.findOne({
+        owner: req.user._id
+      }).sort([['position', -1]]).select('position');
+
+
+      // loop through the quick links and add a position value
+      quick_links = quick_links.map((x, position) => ({
+        ...x,
+        owner: req.user._id,
+        position: +(last_record?.position ?? 0) + position + 1
+      }));
+
+      await QuickAccessModel.insertMany(quick_links);
+
+      return massage_response({ status: true }, res);
+    } catch (error) {
+      return massage_error(error, res);
+    }
+  }
+
+  // static async update_quick_links(req, res) {
+  //   try {
+  //     let { quick_links } = req.body;
+
+  //     QuickAccessModel.up
+
+  //     return massage_response({ status: true }, res);
+  //   } catch (error) {
+  //     return massage_error(error, res);
+  //   }
+  // }
+
+  static async remove_from_quick_access(req, res) {
+    try {
+      await QuickAccessModel.deleteOne({
+        _id: req.params.quick_access_reference,
+        owner: req.user._id
+      });
+
+      return massage_response({ status: true }, res);
+    } catch (error) {
+      return massage_error(error, res);
+    }
+  }
+
+  static async get_quick_access_records(req, res) {
+    try {
+      const quick_accesses = await QuickAccessModel.find({
+        owner: req.user._id
+      }).populate('database').sort([['position', 1]]);
+
+      return massage_response({ quick_accesses }, res);
+    } catch (error) {
+      return massage_error(error, res);
+    }
+  }
+
+
+  static async switch_to_snapshot(req, res) {
+    try {
+
+    } catch (error) {
+      return massage_response(error, res);
+    }
+  }
+
+  static async delete_snapshot(req, res) {
+    try {
+
+    } catch (error) {
+      return massage_error(error, res);
+    }
+  }
+
+  static async export_snapshot(req, res) {
+    try {
+
+    } catch (error) {
+      return massage_error(error, res);
+    }
+  }
+
+
   // support for sniffing databases given a connection
   // used by drop down to allow user to select dbs they want to import
   static async get_all_databases_with_credentials(req, res) {
@@ -77,7 +224,8 @@ export class DatabaseController {
           status: 'scheduled',
           checksum: md5(`${Date.now}`), // this is a placeholder checksum
           database: created_database._id,
-          owner: req.user._id
+          owner: req.user._id,
+          snapshot: LzString.compressToBase64("{}")
         });
 
         await sendToSnapshotGeneratorQueue({ 
@@ -239,9 +387,7 @@ export class DatabaseController {
         );
       }
 
-      const credentials = await GrizzyDatabaseEngine.provision_database(
-        dialect
-      );
+      const credentials = await GrizzyDatabaseEngine.provision_database(dialect);
 
       // save the credentials
       const database = await DatabaseModel.create({
@@ -292,7 +438,8 @@ export class DatabaseController {
         status: 'scheduled',
         checksum: md5(`${Date.now}`), // this is a placeholder checksum
         database: database._id,
-        owner: req.user._id
+        owner: req.user._id,
+        snapshot: LzString.compressToBase64("{}")
       });
 
       await sendToSnapshotGeneratorQueue({ 

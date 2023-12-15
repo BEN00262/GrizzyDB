@@ -302,16 +302,16 @@ export class GrizzyDatabaseEngine {
     // rename a database
     // called when the user renames a database and we are doing self hosting of the database ---> but should we??
     static async rename_database(dialect, new_name, credentials = {}) {
-        console.log(credentials);
+        // console.log(credentials);
         
-        const sequelize = new Sequelize(credentials.DB_NAME, credentials.DB_USER, credentials.DB_PASSWORD, {
-            host: GrizzyDatabaseEngine.get_rds_uri(dialect),
-            logging: false,
-            dialect: dialect === 'mariadb' ? 'mysql' : dialect /* weird kink fix it later */, /* one of 'mysql' | 'postgres' | 'sqlite' | 'mariadb' | 'mssql' | 'db2' | 'snowflake' | 'oracle' */
-        });
+        // const sequelize = new Sequelize(credentials.DB_NAME, credentials.DB_USER, credentials.DB_PASSWORD, {
+        //     host: GrizzyDatabaseEngine.get_rds_uri(dialect),
+        //     logging: false,
+        //     dialect: dialect === 'mariadb' ? 'mysql' : dialect /* weird kink fix it later */, /* one of 'mysql' | 'postgres' | 'sqlite' | 'mariadb' | 'mssql' | 'db2' | 'snowflake' | 'oracle' */
+        // });
 
         // https://www.tutorialspoint.com/sql/sql-rename-database.htm
         // TODO: fully test this flow
-        await sequelize.query(`RENAME DATABASE ${credentials.DB_NAME} TO ${morph_name_to_valid_database_name(new_name)};`);        
+        // await sequelize.query(`RENAME DATABASE ${credentials.DB_NAME} TO ${morph_name_to_valid_database_name(new_name)};`);        
     }
 }

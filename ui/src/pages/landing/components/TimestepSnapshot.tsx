@@ -19,9 +19,9 @@ const TimestepPoint = ({
     <>
       <div
         style={{
-          height: "80px",
+          minHeight: "80px",
           width: "100%",
-          border: "1px solid #efefef",
+          border: "1px solid #d3d3d3",
           borderRadius: "5px",
           cursor: "pointer",
           padding: "10px",
@@ -29,11 +29,30 @@ const TimestepPoint = ({
         }}
         onClick={onClick}
       >
-        <h4>{snapshot.checksum}</h4>
-        <p>{snapshot.humanTime}</p>
+        <h5>{snapshot.checksum}</h5>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center"
+          }}
+        >
+          <p>{snapshot.humanTime}</p>
+          <div
+            style={{
+              border: "1px solid #efefef",
+              borderRadius: "10px",
+              padding: "1px 15px",
+              backgroundColor: "#e7f5ff",
+              fontWeight: "bold"
+            }}
+          >
+            {snapshot.status ?? "active"}
+          </div>
+        </div>
       </div>
 
-      {isClicked ? (
+      {isClicked && !snapshot.status || snapshot.status === 'done' ? (
         <div
           style={{
             height: "550px",
@@ -44,20 +63,27 @@ const TimestepPoint = ({
             style={{
               height: "500px",
               marginTop: "5px",
-              border: "1px solid #efefef",
+              border: "1px solid #d3d3d3",
             }}
           >
-            <Visualizer hide_minmap={true} main={snapshot._id} base={snapshot._id} />
+            <Visualizer
+              hide_minmap={true}
+              main={snapshot._id}
+              base={snapshot._id}
+            />
           </div>
 
           <div
             style={{
               display: "flex",
               justifyContent: "flex-end",
+              gap: "10px",
               marginTop: "10px",
             }}
           >
-            <LoadingButton variant="outlined">use snapshot</LoadingButton>
+            <LoadingButton variant="outlined" size="small">export snapshot</LoadingButton>
+            <LoadingButton variant="outlined" size="small">switch to snapshot</LoadingButton>
+            <LoadingButton variant="outlined" size="small" color="error">delete snapshot</LoadingButton>
           </div>
         </div>
       ) : null}

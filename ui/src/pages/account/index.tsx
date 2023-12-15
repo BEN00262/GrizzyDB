@@ -7,14 +7,19 @@ import {
   createStyles,
   rem,
 } from "@mantine/core";
+import StorageIcon from "@mui/icons-material/Storage";
+import { Tooltip as MuiTooltip } from '@mui/material';
 import { IconHome2 } from "@tabler/icons-react";
 import { useState } from "react";
 import { Container } from "react-bootstrap";
-import { Outlet, useNavigate } from "react-router-dom";
+import { DndProvider, useDrop } from "react-dnd";
+import { HTML5Backend } from "react-dnd-html5-backend";
+import { Outlet, useNavigate, useParams } from "react-router-dom";
 
-import {
-  UserButton
-} from "@clerk/clerk-react";
+import { UserButton } from "@clerk/clerk-react";
+import { useQuery } from "react-query";
+import AddFavouritesButton from "../../components/Spotlight";
+import { get_my_quick_links } from "../landing/api";
 
 const useStyles = createStyles((theme) => ({
   link: {
@@ -70,6 +75,89 @@ function NavbarLink({ icon: Icon, label, active, onClick }: NavbarLinkProps) {
   );
 }
 
+const FavouritesBar = () => {
+  const [{ canDrop, isOver }, drop] = useDrop(() => ({
+    accept: "box",
+    drop: () => ({ name: "favourites", isFavsTab: true }),
+    collect: (monitor) => ({
+      isOver: monitor.isOver(),
+      canDrop: monitor.canDrop(),
+    }),
+  }));
+
+  const navigate = useNavigate();
+  const params = useParams();
+
+  const { data: quick_links } = useQuery(["quick-links"], get_my_quick_links);
+
+  return (
+    <div
+      style={{
+        position: "fixed",
+        top: "20%",
+        right: "20px",
+        width: "70px",
+        height: "60%",
+        border: "1px solid #d3d3d3",
+        borderRadius: "5px",
+        backgroundColor: "white",
+        zIndex: 5,
+        padding: "5px",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+      }}
+    >
+      <div style={{ flex: 2, display: "flex", marginBottom: "10px", flexDirection: "column", gap: 5, height: "60%", overflowY: "auto", padding: "0px 5px" }} className="quick-links" ref={drop}>
+        {quick_links?.map((quick_link, position) => {
+          return (
+            <MuiTooltip key={position} title={quick_link.database.name} arrow placement="left">
+              <div
+              style={{
+                width: "50px",
+                border: `1px solid ${params?.id === quick_link.database._id ? "#000" : "#d3d3d3"}`,
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "center",
+                height: "50px",
+                borderRadius: "10px",
+                cursor: "pointer",
+              }}
+
+              onClick={() => {
+                navigate(`/dashboard/${quick_link.database._id}`)
+              }}
+            >
+              <StorageIcon
+                style={{
+                  height: "24px",
+                  width: "24px",
+                }}
+              />
+
+              <div
+                style={{
+                  fontSize: 8,
+                  maxWidth: 40,
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                {quick_link.database.name}
+              </div>
+            </div>
+            </MuiTooltip>
+          );
+        })}
+      </div>
+
+      <AddFavouritesButton/>
+    </div>
+  );
+};
+
 export function AccountsPage() {
   const [active, setActive] = useState<string | null>("Dashboard");
 
@@ -110,6 +198,7 @@ export function AccountsPage() {
             />
           </Stack>
         </Navbar.Section>
+
         <Navbar.Section>
           <Stack justify="center" spacing={0}>
             <UserButton
@@ -122,7 +211,10 @@ export function AccountsPage() {
       </Navbar>
 
       <Container style={{ padding: "20px" }}>
-        <Outlet />
+        <DndProvider backend={HTML5Backend}>
+          <Outlet />
+          <FavouritesBar />
+        </DndProvider>
       </Container>
     </div>
   );

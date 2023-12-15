@@ -31,6 +31,8 @@ import {
   get_available_sample_data_templates,
   provision_database,
 } from "./api";
+import { DatabaseCredentialsForm, IExternalCredentials } from "./Import";
+import { connect_external_database } from "../api";
 
 export const DBCard: React.FC<{
   database: IDatabase;
@@ -243,6 +245,16 @@ const ProvisionModal: React.FC<{
   const [value, setValue] = React.useState("none");
   const [error, setError] = React.useState<Error | null>(null);
 
+  const [credentials, setCredentials] = React.useState<IExternalCredentials>({
+    DB_HOST: "",
+    DB_PASSWORD: "",
+    DB_USER: "",
+  });
+
+  const [databases_selected, setDatabasesSelected] = React.useState<string[]>(
+    []
+  );
+
   const params = useParams();
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -265,13 +277,16 @@ const ProvisionModal: React.FC<{
     };
   }
 
-  useQuery(["available-datababes"], get_available_database, {
+  const { data: selectable_dbs } = useQuery(["available-datababes"], get_available_database, {
     refetchOnWindowFocus: false,
     staleTime: 30 * 1000 * 60, // 30 mins
-    onSuccess: (data) => {
-      setDatabases(data);
-    },
   });
+
+  React.useEffect(() => {
+    if (Array.isArray(selectable_dbs)) {
+      setDatabases(selectable_dbs);
+    }
+  }, [selectable_dbs]);
 
   const handleSampleDataChange = (value: string) => {
     setDatabaseTemplate({
@@ -283,6 +298,17 @@ const ProvisionModal: React.FC<{
   const handleProvisionRequest = useMutation(
     async () => {
       setError(null);
+
+      if (databaseTemplate.selected_template === "external") {
+        return connect_external_database(
+          {
+            dialect: databaseTemplate.dialect,
+            credentials,
+            databases_selected,
+          },
+          params?.folder_id
+        );
+      }
 
       return provision_database(databaseTemplate, params?.folder_id);
     },
@@ -319,7 +345,7 @@ const ProvisionModal: React.FC<{
             }}
             severity="info"
           >
-            Limited to a <b>100MB</b> per database on the BETA version.{" "}
+            Limited to a <b>100MB</b> per database on the BETA version ().{" "}
             <b>The databases are deleted after 24hrs</b>
           </Alert>
 
@@ -343,8 +369,6 @@ const ProvisionModal: React.FC<{
           </Grid>
 
           <div style={{ marginTop: "10px" }}>
-            {/* <FormControlLabel control={<Checkbox checked={databaseTemplate.use_sample_data} onChange={handleCheckboxChange} />} label="Use sample data" /> */}
-
             <div
               style={{
                 padding: "10px",
@@ -352,6 +376,10 @@ const ProvisionModal: React.FC<{
                 flexDirection: "row",
                 alignItems: "center",
                 justifyContent: "center",
+                border: "1px solid #d3d3d3",
+                marginBottom: "10px",
+                borderRadius: "2px",
+                backgroundColor: "#e5f6fd",
               }}
             >
               <RadioGroup
@@ -360,6 +388,11 @@ const ProvisionModal: React.FC<{
                 name="controlled-radio-buttons-group"
                 value={value}
                 onChange={handleChange}
+                style={{
+                  display: "grid",
+                  rowGap: "5px",
+                  gridTemplate: "auto / auto auto auto auto",
+                }}
               >
                 <FormControlLabel
                   className="select-radio"
@@ -372,6 +405,22 @@ const ProvisionModal: React.FC<{
                   label={
                     <span className="action-text">
                       Start with a clean database
+                    </span>
+                  }
+                />
+                <FormControlLabel
+                  className="select-radio"
+                  value="external"
+                  control={
+                    <Radio
+                      checked={
+                        databaseTemplate.selected_template === "external"
+                      }
+                    />
+                  }
+                  label={
+                    <span className="action-text">
+                      Connect to external database
                     </span>
                   }
                 />
@@ -415,7 +464,9 @@ const ProvisionModal: React.FC<{
                     />
                   }
                   label={
-                    <span className="action-text">Import your database schema</span>
+                    <span className="action-text">
+                      Import your database schema
+                    </span>
                   }
                 />
               </RadioGroup>
@@ -426,6 +477,15 @@ const ProvisionModal: React.FC<{
                 handleEditorChange={handleEditorChange(
                   "custom_schema_template"
                 )}
+              />
+            ) : null}
+
+            {databaseTemplate.selected_template === "external" ? (
+              <DatabaseCredentialsForm
+                dialect={databaseTemplate.dialect}
+                credentials={credentials}
+                setCredentials={setCredentials}
+                setDatabasesSelected={setDatabasesSelected}
               />
             ) : null}
 
@@ -466,7 +526,9 @@ const ProvisionModal: React.FC<{
               onClick={() => handleProvisionRequest.mutate()}
               startIcon={<PlayCircleFilledWhiteIcon />}
             >
-              Provision
+              {databaseTemplate.selected_template === "external"
+                ? "connect"
+                : "provision"}
             </LoadingButton>
           </div>
         </Container>

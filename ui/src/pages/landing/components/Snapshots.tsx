@@ -17,7 +17,6 @@ const customStyles = {
 
 export default function Snapshots() {
   const params = useParams();
-  // const [value, setValue] = useState<Date[]>([]);
   const [options, setOptions] = useState<
     {
       value: string;
@@ -50,18 +49,6 @@ export default function Snapshots() {
 
   return (
     <Row>
-      {/* <Col xs={12} md={3}>
-                <div style={{
-                    border: "1px solid #efefef",
-                    padding: "20px",
-                    borderRadius: "5px",
-                }}>
-                    <Group position="center">
-                        <DatePicker type="multiple" value={value} onChange={setValue} />
-                    </Group>
-                </div>
-            </Col> */}
-
       <Col xs={12}>
         <div>
           <h5>Snapshots</h5>

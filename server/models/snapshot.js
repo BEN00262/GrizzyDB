@@ -8,6 +8,11 @@ const snapshotSchema = new mongoose.Schema({
         required: true
     },
 
+    // users are able to rename their snapshots
+    name: {
+        type: String
+    },
+
     // md5 hash of the snapshot
     // can be null for the genesis block
     checksum: {

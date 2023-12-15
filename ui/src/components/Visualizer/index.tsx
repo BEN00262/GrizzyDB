@@ -304,6 +304,8 @@ const Flow: React.FC<FlowProps> = (props: FlowProps) => {
     // }
   }
 
+  console.log({ nodes, edges })
+
   // https://stackoverflow.com/questions/16664584/changing-an-svg-markers-color-css
   return (
     <div className="Flow">

@@ -9,13 +9,15 @@ import FormControlLabel from "@mui/material/FormControlLabel";
 import Modal from "@mui/material/Modal";
 import TextField from "@mui/material/TextField";
 import Grid from "@mui/material/Unstable_Grid2";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import FileUpload from "react-material-file-upload";
-import { IDatabase } from "../../../context/types";
+import Select from "react-select";
+import { DBDialect, IDatabase } from "../../../context/types";
 
 import { useQuery } from "react-query";
 import { DBCard } from "./Provision";
 import { get_available_database } from "./api";
+import { get_exposed_databases } from "../api";
 
 const style = {
   position: "absolute",
@@ -27,7 +29,89 @@ const style = {
   border: "1px solid #efefef",
   boxShadow: 24,
   borderRadius: "2px",
-  p: 4
+  p: 4,
+};
+
+export interface IExternalCredentials {
+  DB_HOST: string;
+  DB_USER: string;
+  DB_PASSWORD: string;
+}
+
+export const DatabaseCredentialsForm = ({ dialect, credentials, setCredentials, setDatabasesSelected }: { 
+  dialect: DBDialect,
+  credentials: IExternalCredentials,
+  setCredentials: React.Dispatch<React.SetStateAction<IExternalCredentials>>,
+  setDatabasesSelected: React.Dispatch<React.SetStateAction<string[]>>
+}) => {
+  const update_credential = (key, value) => {
+    setCredentials(old => ({
+      ...old,
+      [key]: value
+    }))
+  }
+
+  const { data } = useQuery(['available-client-databases'], async () => {
+    return get_exposed_databases({
+      dialect,
+      credentials
+    })
+  }, { enabled: !!Object.values(credentials).filter(u => u).length });
+
+  const options = useMemo(() => {
+    return (data ?? [])?.map(x => ({ value: x, label: x }))
+  }, [data]);
+
+  return (
+    <div
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        gap: "20px",
+        border: "1px solid #efefef",
+        padding: "15px",
+        borderRadius: "2px",
+        boxSizing: "border-box",
+      }}
+    >
+      <TextField
+        label="Host"
+        id="filled-size-small"
+        size="small"
+        value={credentials.DB_HOST}
+        onChange={text => update_credential("DB_HOST", text.target.value)}
+      />
+
+      <TextField
+        label="User"
+        id="filled-size-small"
+        size="small"
+        value={credentials.DB_USER}
+        onChange={text => update_credential("DB_USER", text.target.value)}
+      />
+
+      <TextField
+        label="Password"
+        id="filled-size-small"
+        size="small"
+        value={credentials.DB_PASSWORD}
+        onChange={text => update_credential("DB_PASSWORD", text.target.value)}
+      />
+
+      <Select
+        isMulti
+        name="colors"
+        placeholder="Databases to import ( leaving this empty will connect all databases )"
+        options={options}
+        className="basic-multi-select"
+        classNamePrefix="select"
+        isDisabled={!options.length}
+        onChange={value => {
+          setDatabasesSelected(value.map(({ value }) => value))
+        }}
+      />
+    </div>
+  );
 };
 
 const ImportComponent = () => {
@@ -158,7 +242,7 @@ const ImportComponent = () => {
                     border: "1px solid #efefef",
                     padding: "15px",
                     borderRadius: "2px",
-                    boxSizing: "border-box"
+                    boxSizing: "border-box",
                     // backgroundColor:"#efefef"
                   }}
                 >
@@ -206,14 +290,14 @@ const ImportComponent = () => {
             </JTabPanel>
           </JTabs>
 
-          <div style={{
-            marginTop: "20px",
-            display: "flex",
-            justifyContent: "flex-end"
-          }}>
-          <button>
-            import
-          </button>
+          <div
+            style={{
+              marginTop: "20px",
+              display: "flex",
+              justifyContent: "flex-end",
+            }}
+          >
+            <button>import</button>
           </div>
         </Box>
       </Modal>

@@ -275,7 +275,7 @@ const FileMoveComp = () => {
           size="small"
           style={{
             color: "black",
-            fontWeight: "bold",
+            // fontWeight: "bold",
             // letterSpacing: "2px",
             border: "1px solid #000",
           }}

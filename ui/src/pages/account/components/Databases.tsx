@@ -13,18 +13,24 @@ import ProvisionModal from "../../landing/components/Provision";
 
 import FolderOpenIcon from "@mui/icons-material/FolderOpen";
 import { Divider } from "@mui/material";
+import { useDrag, useDrop } from "react-dnd";
 import { LuNetwork } from "react-icons/lu";
-import { useDrop, useDrag } from "react-dnd";
 
-import { DndProvider } from "react-dnd";
-import { HTML5Backend } from "react-dnd-html5-backend";
 // import { Menu, Item, Separator, Submenu, useContextMenu } from 'react-contexify';
 // import 'react-contexify/ReactContexify.css';
 
 import { useNavigate, useParams } from "react-router-dom";
 import NotFoundSvg from "../../../assets/not_found.svg";
-import { IDatabaseDisplay, IFolder } from "../../../context/types";
-import { get_my_databases, move_to_folder } from "../../landing/api";
+import {
+  IDatabaseDisplay,
+  IFolder,
+  IQuickLinkCreate,
+} from "../../../context/types";
+import {
+  create_quick_links,
+  get_my_databases,
+  move_to_folder,
+} from "../../landing/api";
 import FileMoveComp from "../../landing/components/FileMove";
 import FolderCreateComp from "../../landing/components/FolderCreate";
 
@@ -44,7 +50,7 @@ const DatabaseFolder = ({ folder }: { folder: IFolder }) => {
     <div
       ref={drop}
       style={{
-        border: "1px solid #efefef",
+        border: "1px solid #d3d3d3",
         borderRadius: "5px",
         height: "200px",
         padding: "5px",
@@ -73,7 +79,14 @@ const DatabaseFolder = ({ folder }: { folder: IFolder }) => {
       />
       <span className="action-text">folder</span>
       <br />
-      <div>
+      <div
+        style={{
+          maxWidth: "80%",
+          overflow: "hidden",
+          textOverflow: "ellipsis",
+          whiteSpace: "nowrap",
+        }}
+      >
         <span className="action-text">{folder.name}</span>
       </div>
     </div>
@@ -83,20 +96,35 @@ const DatabaseFolder = ({ folder }: { folder: IFolder }) => {
 interface DropResult {
   name: string;
   reference: string;
+  isFavsTab: boolean;
 }
 
 const DatabaseFile = ({ database }: { database: IDatabaseDisplay }) => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
-  const move_to_folder_mutation = useMutation(({ folder, file }: { folder: string, file: string }) => {
-    return move_to_folder(folder, file)
-  }, {
-    onSuccess: (data) => {
-      // invalidate the data
-      queryClient.invalidateQueries(['my-databases'])
+  const move_to_folder_mutation = useMutation(
+    ({ folder, file }: { folder: string; file: string }) => {
+      return move_to_folder(folder, file);
+    },
+    {
+      onSuccess: (data) => {
+        // invalidate the data
+        queryClient.invalidateQueries(["my-databases"]);
+      },
     }
-  })
+  );
+
+  const move_to_favourites = useMutation(
+    (data: IQuickLinkCreate) => {
+      return create_quick_links(data);
+    },
+    {
+      onSuccess: (data) => {
+        queryClient.invalidateQueries(["quick-links"]);
+      },
+    }
+  );
 
   const [{ isDragging }, drag] = useDrag(() => ({
     type: "box",
@@ -104,8 +132,22 @@ const DatabaseFile = ({ database }: { database: IDatabaseDisplay }) => {
     end: (item, monitor) => {
       const dropResult = monitor.getDropResult<DropResult>();
       if (item && dropResult) {
-        // alert(`You dropped ${item.name} into ${dropResult.name} ${dropResult.reference}!`);
-        move_to_folder_mutation.mutate({folder: dropResult.reference, file: item.reference })
+        // alert(`You dropped ${item.name} into ${dropResult.name} ${dropResult.reference} ${dropResult.isFavsTab}!`);
+
+        if (dropResult.isFavsTab) {
+          move_to_favourites.mutate({
+            quick_links: [
+              {
+                database: item.reference,
+              },
+            ],
+          });
+        } else {
+          move_to_folder_mutation.mutate({
+            folder: dropResult.reference,
+            file: item.reference,
+          });
+        }
       }
     },
     collect: (monitor) => ({
@@ -118,7 +160,7 @@ const DatabaseFile = ({ database }: { database: IDatabaseDisplay }) => {
     <div
       ref={drag}
       style={{
-        border: "1px solid #efefef",
+        border: "1px solid #d3d3d3",
         borderRadius: "5px",
         height: "200px",
         padding: "5px",
@@ -156,7 +198,14 @@ const DatabaseFile = ({ database }: { database: IDatabaseDisplay }) => {
       )}
       <span className="action-text">{database.dialect}</span>
       <br />
-      <div>
+      <div
+        style={{
+          maxWidth: "80%",
+          overflow: "hidden",
+          textOverflow: "ellipsis",
+          whiteSpace: "nowrap",
+        }}
+      >
         <span className="action-text">{database.name}</span>
       </div>
     </div>
@@ -197,7 +246,7 @@ export default function Databases() {
         size="small"
         style={{
           color: "black",
-          fontWeight: "bold",
+          // fontWeight: "bold",
           border: "1px solid #000",
         }}
         endIcon={<StorageIcon />}
@@ -212,46 +261,44 @@ export default function Databases() {
           margin: "20px auto",
         }}
       />
-      <DndProvider backend={HTML5Backend}>
-        <Row>
-          {databases.length || folders.length ? (
-            <>
-              {folders.map((folder, position) => {
-                return (
-                  <Col xs={6} md={3} lg={2} key={position}>
-                    <DatabaseFolder folder={folder} />
-                  </Col>
-                );
-              })}
-              {databases.map((database, position) => {
-                return (
-                  <Col xs={6} md={3} lg={2} key={position}>
-                    <DatabaseFile database={database} />
-                  </Col>
-                );
-              })}
-            </>
-          ) : (
-            <div
+      <Row>
+        {databases.length || folders.length ? (
+          <>
+            {folders.map((folder, position) => {
+              return (
+                <Col xs={6} md={3} lg={2} key={position}>
+                  <DatabaseFolder folder={folder} />
+                </Col>
+              );
+            })}
+            {databases.map((database, position) => {
+              return (
+                <Col xs={6} md={3} lg={2} key={position}>
+                  <DatabaseFile database={database} />
+                </Col>
+              );
+            })}
+          </>
+        ) : (
+          <div
+            style={{
+              height: "500px",
+              display: "flex",
+              flexDirection: "column",
+              justifyContent: "center",
+              alignItems: "center",
+            }}
+          >
+            <img
+              src={NotFoundSvg}
+              alt="not found"
               style={{
-                height: "500px",
-                display: "flex",
-                flexDirection: "column",
-                justifyContent: "center",
-                alignItems: "center",
+                width: "250px",
               }}
-            >
-              <img
-                src={NotFoundSvg}
-                alt="not found"
-                style={{
-                  width: "250px",
-                }}
-              />
-            </div>
-          )}
-        </Row>
-      </DndProvider>
+            />
+          </div>
+        )}
+      </Row>
     </>
   );
 }

@@ -17,10 +17,30 @@ router.post(
 
 router.use([EnsureIsAuthenticated]);
 
+router.get(
+  '/search',
+  DatabaseController.search_files_and_folders
+);
+
 // used for drop downs
 router.post(
   '/available',
   DatabaseController.get_all_databases_with_credentials
+);
+
+router.get(
+  '/quick-links',
+  DatabaseController.get_quick_access_records
+);
+
+router.delete(
+  '/quick-links/:quick_access_reference',
+  DatabaseController.remove_from_quick_access
+);
+
+router.post(
+  '/quick-links',
+  DatabaseController.add_to_quick_access
 );
 
 // used to carry out the procedure
