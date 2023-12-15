@@ -123,6 +123,7 @@ function CustomAction({
   onTrigger,
   ...others
 }: SpotlightActionProps) {
+    // @ts-ignore
   const { classes } = useStyles(null, {
     styles,
     classNames,
