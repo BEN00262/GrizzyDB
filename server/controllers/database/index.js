@@ -58,6 +58,11 @@ export class DatabaseController {
                 ]
               }
             }
+          },
+          {
+            $match: {
+              owner: req.user._id
+            }
           }
         ]),
 
@@ -75,6 +80,11 @@ export class DatabaseController {
                   }
                 ]
               }
+            }
+          },
+          {
+            $match: {
+              owner: req.user._id
             }
           }
         ])
