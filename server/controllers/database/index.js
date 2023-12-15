@@ -170,6 +170,13 @@ export class DatabaseController {
   static async delete_snapshot(req, res) {
     try {
 
+      await SnapshotModel.deleteOne({
+        _id: req.params.snapshot_id,
+        owner: req.user._id
+      });
+
+      // delete the snapshot from s3
+
     } catch (error) {
       return massage_error(error, res);
     }

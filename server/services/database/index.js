@@ -130,7 +130,7 @@ export class GrizzyDatabaseEngine {
     static async query_database(query, dialect, credentials = {}) {
         try {
             const sequelize = new Sequelize(credentials.DB_NAME, credentials.DB_USER, credentials.DB_PASSWORD, {
-                host: GrizzyDatabaseEngine.get_rds_uri(dialect),
+                host: credentials?.DB_HOST ? credentials.DB_HOST : GrizzyDatabaseEngine.get_rds_uri(dialect),
                 logging: false,
                 dialect: dialect === 'mariadb' ? 'mysql' : dialect /* weird kink fix it later */, /* one of 'mysql' | 'postgres' | 'sqlite' | 'mariadb' | 'mssql' | 'db2' | 'snowflake' | 'oracle' */
             });
