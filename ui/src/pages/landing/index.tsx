@@ -207,7 +207,7 @@ export function ProvisionedDB({ credentials, _id }: IDatabaseDisplay) {
         }}
       >
         <JTab>ERD</JTab>
-        <JTab disabled>Snapshots</JTab>
+        <JTab>Snapshots</JTab>
         <Tooltip title="Coming soon" arrow>
           <JTab disabled>Client</JTab>
         </Tooltip>

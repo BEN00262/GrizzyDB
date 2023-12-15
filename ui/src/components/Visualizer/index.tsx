@@ -81,6 +81,15 @@ const Flow: React.FC<FlowProps> = (props: FlowProps) => {
   const [databaseMenuPopupOn, setDatabaseMenuPopupOn] = useState(false);
   const [nodeHoverActive, setNodeHoverActive] = useState(true);
 
+  useEffect(() => {
+    setNodes(initialNodes);
+
+    const initialEdges = calculateEdges({ nodes: initialNodes, currentDatabase });
+    setEdges(() => initialEdges);
+
+  }, [props?.reload])
+
+
   const onInit = (instance: ReactFlowInstance) => {
     const nodes = instance.getNodes();
     const initialEdges = calculateEdges({ nodes, currentDatabase });
@@ -304,8 +313,6 @@ const Flow: React.FC<FlowProps> = (props: FlowProps) => {
     // }
   }
 
-  console.log({ nodes, edges })
-
   // https://stackoverflow.com/questions/16664584/changing-an-svg-markers-color-css
   return (
     <div className="Flow">
@@ -354,21 +361,19 @@ const Visualizer: React.FC<VisualizerProps> = (props: VisualizerProps) => {
 
   const [reload, setReload] = useState(0);
 
-  const { isLoading, data: database_config } = useQuery(['database-schema', props.database, props.main, props.base], () => {
+  const { isLoading } = useQuery(['database-schema', props.database, props.main, props.base], () => {
     return props.database ? get_database_schema(props.database ?? "") : get_database_diff(props.main ?? "", props.base ?? "")
   }, {
     enabled: !!props.database || !!props.main || !!props.base,
     refetchOnMount: true,
-    refetchOnWindowFocus: true
-  });
+    refetchOnWindowFocus: false,
+    cacheTime: 20000,
 
-  useEffect(() => {
-    console.log({ database_config })
-    if (database_config && !isLoading) {
+    onSuccess: data => {
       setReload(Date.now())
-      setCurrentDatabase(database_config);
+      setCurrentDatabase(data);
     }
-  }, [database_config, isLoading])
+  });
 
   if (isLoading) {
     return (

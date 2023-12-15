@@ -1009,11 +1009,19 @@ export class DatabaseController {
 
   static async get_database(req, res) {
     try {
-      let database =
-        (await DatabaseModel.findOne({
+      let database = (await DatabaseModel.findOne({
           owner: req.user._id,
           _id: req.params.database_reference,
-        }).lean()) ?? {};
+      }).lean()) ?? {};
+
+      const credentials = Object.entries(
+        JSON.parse(
+          CryptoJS.AES.decrypt(
+            database.credentials,
+            process.env.MASTER_AES_ENCRYPTION_KEY
+          ).toString(CryptoJS.enc.Utf8)
+        )
+      );
 
       // decrypt the credentials on the fly
       database = {
@@ -1021,15 +1029,9 @@ export class DatabaseController {
         credentials:
           database.product_type === "bring_your_own"
             ? []
-            : Object.entries(
-                JSON.parse(
-                  CryptoJS.AES.decrypt(
-                    database.credentials,
-                    process.env.MASTER_AES_ENCRYPTION_KEY
-                  ).toString(CryptoJS.enc.Utf8)
-                )
-              ).reduce(
+            : credentials.reduce(
                 (acc, [key, value]) => {
+                  // check if has HOST if not generate one
                   return [
                     ...acc,
                     {
@@ -1040,12 +1042,12 @@ export class DatabaseController {
                   ];
                 },
                 [
-                  {
+                  (credentials?.find(([key, value]) => key?.toLowerCase() === 'host') ? null : {
                     credentialKey: "HOST",
                     value: GrizzyDatabaseEngine.get_rds_uri(database.dialect),
                     isHidden: false,
-                  },
-                ]
+                  })
+                ].filter(u => u)
               ),
       };
 

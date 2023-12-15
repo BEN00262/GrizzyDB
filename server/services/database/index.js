@@ -287,7 +287,7 @@ export class GrizzyDatabaseEngine {
     static async export_database_schema(dialect, credentials = {}) {
         const auto = new SequelizeAuto(
             credentials.DB_NAME, credentials.DB_USER, credentials.DB_PASSWORD, {
-                host: GrizzyDatabaseEngine.get_rds_uri(dialect),
+                host: credentials?.DB_HOST ? credentials.DB_HOST : GrizzyDatabaseEngine.get_rds_uri(dialect),
                 dialect,
                 noWrite: true,
                 logging:false

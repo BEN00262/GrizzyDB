@@ -8,14 +8,19 @@ DotEnv.config({
 import amqp from 'amqplib/callback_api.js';
 import CryptoJS from "crypto-js";
 import LzString from "lz-string";
+import mongoose from "mongoose";
 import {
     DatabaseModel,
     SnapshotModel,
 } from "../models/index.js";
+import { GrizzyDatabaseEngine } from '../services/index.js';
+import md5 from 'md5';
 
 
 ;(async () => {
     try {
+        await mongoose.connect(process.env.MONGODB_URI);
+
         amqp.connect(process.env.AMQP_SERVER_URI, function (error0, connection){
             console.log("Started the consumer");
         
@@ -29,6 +34,7 @@ import {
                 channel.prefetch(1);
         
                 channel.consume(process.env.SNAPSHOT_QUEUE, async msg => {
+
                     const { database_id, snapshot_id } = JSON.parse(msg.content.toString());
 
                     let [database, snapshot] = await Promise.all([
@@ -37,10 +43,11 @@ import {
                     ]);
 
                     if (database && snapshot) {
+
                         // mark snapshot as being generated
-                        await SnapshotModel.updateOne({ status: 'generating' }, {
+                        await SnapshotModel.updateOne({
                             _id: snapshot._id
-                        });
+                        },{ status: 'generating' });
 
                         const credentials = JSON.parse(
                             CryptoJS.AES.decrypt(
@@ -60,10 +67,12 @@ import {
                 
                         // we good at this point
                         await SnapshotModel.updateOne({
+                            _id: snapshot._id
+                        },{
                             checksum: schema_version_checksum,
                             snapshot: LzString.compressToBase64(schema_generated),
                             status: 'done'
-                        }, { _id: snapshot._id });
+                        });
                     }
 
                     channel.ack(msg);
