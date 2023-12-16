@@ -5,7 +5,7 @@ import ResultChangeCollector from 'libs/ResultChangeCollector';
 import { useContextMenu } from 'renderer/contexts/ContextMenuProvider';
 import { TableCellManager } from 'renderer/contexts/EditableQueryResultProvider';
 import { QueryResultHeader, QueryResultWithIndex } from 'types/SqlResult';
-import { getDisplayableFromDatabaseRows } from '../../../../libs/TransformResult';
+import { getDisplayableFromDatabaseRows } from 'libs/TransformResult';
 import BaseType from 'renderer/datatype/BaseType';
 import SQLCommonInterface from 'drivers/base/SQLCommonInterface';
 import { useSqlExecute } from 'renderer/contexts/SqlExecuteProvider';

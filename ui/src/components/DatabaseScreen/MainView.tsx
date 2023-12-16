@@ -142,7 +142,7 @@ export default function MainView() {
 
       <Layout>
         <Layout.Fixed>
-          <MainToolbar />
+          {/* <MainToolbar /> */}
         </Layout.Fixed>
         <Layout.Grow>
           <WindowTab

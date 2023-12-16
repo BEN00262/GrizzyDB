@@ -5,19 +5,11 @@ import Toolbar from 'renderer/components/Toolbar';
 import { useDatabaseSetting } from 'renderer/contexts/DatabaseSettingProvider';
 
 export default function MainToolbar() {
-  const { disconnect } = useConnection();
   const { protectionLevel, setProductionLevel } = useDatabaseSetting();
 
   return (
     <div style={{ paddingBottom: 5 }}>
       <Toolbar>
-        <Toolbar.Item
-          text="Disconnect"
-          icon={<FontAwesomeIcon icon={faPlugCircleXmark} color={'#e74c3c'} />}
-          onClick={() => {
-            disconnect();
-          }}
-        />
         <Toolbar.ContextMenu
           text={`Protection: Level ${protectionLevel}`}
           icon={<FontAwesomeIcon icon={faShield} color="#27ae60" />}

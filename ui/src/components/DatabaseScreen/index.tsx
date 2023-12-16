@@ -121,20 +121,22 @@ export default function DatabaseScreen({
   useWindowTitle('Querym - ' + config.name);
   const [isConnected, setConnected] = useState(false);
 
-  useEffect(() => {
-    // window.electron.connect(config).then(() => setConnected(true));
-  }, []);
+  // useEffect(() => {
+  //   // window.electron.connect(config).then(() => setConnected(true));
+  // }, []);
 
-  if (!isConnected) {
-    return <div />;
-  }
+  // console.log({ isConnected })
+
+  // if (!isConnected) {
+  //   return <div />;
+  // }
 
   return (
     <DatabaseSettingProvider setting={config}>
       <SqlExecuteProvider>
         <SqlProtectionProvider>
           <WindowTabProvider>
-            {/* <DatabaseScreenBody /> */}
+            <DatabaseScreenBody />
           </WindowTabProvider>
         </SqlProtectionProvider>
       </SqlExecuteProvider>

@@ -135,11 +135,11 @@ export default function DatabaseTableList() {
   return (
     <div className={styles.tables}>
       <Layout>
-        {common.FLAG_USE_STATEMENT && (
+        {/* {common.FLAG_USE_STATEMENT && (
           <Layout.Fixed>
             <DatabaseSelection />
           </Layout.Fixed>
-        )}
+        )} */}
         <Layout.Grow>
           {currentDatabase ? (
             <TreeView
@@ -154,7 +154,7 @@ export default function DatabaseTableList() {
               items={schemaListItem}
             />
           ) : (
-            <ListViewEmptyState text="Please select database to see tables, events, triggers, etc..." />
+            <ListViewEmptyState text="Please select tables, events, triggers, etc..." />
           )}
         </Layout.Grow>
         <Layout.Fixed>

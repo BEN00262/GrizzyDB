@@ -40,15 +40,7 @@
 
   // for now till we get the base build for the features
   "exclude": [
-    "src/components/types",
-    "src/components/libs",
-    "src/components/drivers",
-    "src/components/dialects",
-    "src/components/renderer",
-    "src/components/main",
-    "src/components/language",
-    "src/BI",
-    "src/components/DatabaseScreen"
+    "src/BI"
   ],
   "references": [{ "path": "./tsconfig.node.json" }]
 }

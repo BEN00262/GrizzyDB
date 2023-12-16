@@ -29,6 +29,7 @@ import Markdown from "./components/Markdown";
 import Snapshots from "./components/Snapshots";
 import TimestepSnapshotComp from "./components/TimestepSnapshot";
 import { FeaturesGrid } from "./components/WhatWeOffer";
+import DatabaseScreen from '../../components/DatabaseScreen';
 
 const Credential: React.FC<ICredential> = ({ credentialKey, value }) => {
   return (
@@ -208,9 +209,9 @@ export function ProvisionedDB({ credentials, _id }: IDatabaseDisplay) {
       >
         <JTab>ERD</JTab>
         <JTab>Snapshots</JTab>
-        <Tooltip title="Coming soon" arrow>
-          <JTab disabled>Client</JTab>
-        </Tooltip>
+
+        {/* have to make this one work by the end of the night :) */}
+        <JTab>Client</JTab>
         <Tooltip title="Coming soon" arrow>
           <JTab disabled>Analytics</JTab>
         </Tooltip>
@@ -233,7 +234,7 @@ export function ProvisionedDB({ credentials, _id }: IDatabaseDisplay) {
           borderRadius: "5px",
         }}
       >
-        {/* <DatabaseScreen
+        <DatabaseScreen
           config={{
             database: "",
             user: "",
@@ -242,7 +243,7 @@ export function ProvisionedDB({ credentials, _id }: IDatabaseDisplay) {
             port: "",
             type: "mysql",
           }}
-        /> */}
+        />
       </JTabPanel>
 
       <JTabPanel value={3} sx={{ height: "75vh" }}>
