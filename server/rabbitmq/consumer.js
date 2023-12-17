@@ -9,12 +9,16 @@ import amqp from 'amqplib/callback_api.js';
 import CryptoJS from "crypto-js";
 import LzString from "lz-string";
 import mongoose from "mongoose";
+import { file, dir } from 'tmp-promise';
 import {
     DatabaseModel,
     SnapshotModel,
 } from "../models/index.js";
 import { GrizzyDatabaseEngine } from '../services/index.js';
 import md5 from 'md5';
+import fs from 'fs/promises';
+import { sendToSnapshotGeneratorQueue } from './client.js';
+import { download_sql_dump_file } from '../utils/index.js';
 
 
 ;(async () => {
@@ -35,7 +39,7 @@ import md5 from 'md5';
         
                 channel.consume(process.env.SNAPSHOT_QUEUE, async msg => {
 
-                    const { database_id, snapshot_id } = JSON.parse(msg.content.toString());
+                    const { database_id, snapshot_id, rehydrate_snapshot_id, task } = JSON.parse(msg.content.toString());
 
                     let [database, snapshot] = await Promise.all([
                         DatabaseModel.findOne({ _id: database_id }),
@@ -43,11 +47,8 @@ import md5 from 'md5';
                     ]);
 
                     if (database && snapshot) {
-
                         // mark snapshot as being generated
-                        await SnapshotModel.updateOne({
-                            _id: snapshot._id
-                        },{ status: 'generating' });
+                        await SnapshotModel.updateOne({ _id: snapshot._id },{ status: 'generating' });
 
                         const credentials = JSON.parse(
                             CryptoJS.AES.decrypt(
@@ -64,15 +65,57 @@ import md5 from 'md5';
                         );
                     
                         let schema_version_checksum = md5(schema_generated);
+
+                        const upload_location = await GrizzyDatabaseEngine.dump_database_to_file(
+                            database.dialect,
+                            credentials
+                        );
                 
                         // we good at this point
-                        await SnapshotModel.updateOne({
-                            _id: snapshot._id
-                        },{
+                        await SnapshotModel.updateOne({ _id: snapshot._id },{
                             checksum: schema_version_checksum,
                             snapshot: LzString.compressToBase64(schema_generated),
-                            status: 'done'
+                            status: 'done',
+                            url_to_dump: upload_location
                         });
+
+                        if (task === 'rehydrate') {
+                            const rehydrate_snapshot = await SnapshotModel.findOne({
+                                _id: rehydrate_snapshot_id
+                            });
+
+                            if (rehydrate_snapshot) {
+                                // read the snapshot to a temp file
+                                const { path, cleanup } = await file();
+
+                                const sql_dump = await download_sql_dump_file(
+                                    rehydrate_snapshot.url_to_dump
+                                );
+
+                                await fs.writeFile(path, sql_dump.Body);
+
+                                await GrizzyDatabaseEngine.rehydrate_database_with_snapshot(
+                                    database.dialect,
+                                    credentials,
+                                    path
+                                );
+
+                                const snapshot = await SnapshotModel.create({
+                                    status: 'scheduled',
+                                    checksum: md5(`${Date.now}`), // this is a placeholder checksum
+                                    database: database._id,
+                                    owner: database.owner,
+                                    snapshot: LzString.compressToBase64("{}")
+                                });
+
+                                sendToSnapshotGeneratorQueue({
+                                    database_id: database._id,
+                                    snapshot_id: snapshot._id,
+                                });
+
+                                cleanup();
+                            }
+                        }
                     }
 
                     channel.ack(msg);

@@ -11,6 +11,8 @@ export const templates = {
         list_databases: "SELECT datname FROM pg_database;",
         base_database: "postgres",
 
+        reassign_database: [],
+
         // used to get schema version on a high scale
         schema_version: "SELECT table_name, column_name, data_type FROM information_schema.columns WHERE table_schema = 'public';",
 
@@ -29,6 +31,13 @@ export const templates = {
         list_databases: "SHOW DATABASES;",
         base_database: "mysql",
 
+        reassign_database: [
+            "FLUSH PRIVILEGES;",
+            "CREATE DATABASE IF NOT EXISTS {{database_name}};",
+            "GRANT ALL PRIVILEGES ON {{database_name}}.* TO '{{database_user}}'@'%';",
+            "FLUSH PRIVILEGES;"
+        ],
+
         schema_version: "SELECT table_name, column_name, data_type FROM information_schema.columns WHERE table_schema = DATABASE();",
 
         triggers: []
@@ -38,6 +47,13 @@ export const templates = {
         setup: [
             "CREATE DATABASE IF NOT EXISTS {{database_name}};",
             "CREATE USER '{{database_user}}'@'%' IDENTIFIED BY '{{random_password}}';",
+            "GRANT ALL PRIVILEGES ON {{database_name}}.* TO '{{database_user}}'@'%';",
+            "FLUSH PRIVILEGES;"
+        ],
+
+        reassign_database: [
+            "FLUSH PRIVILEGES;",
+            "CREATE DATABASE IF NOT EXISTS {{database_name}};",
             "GRANT ALL PRIVILEGES ON {{database_name}}.* TO '{{database_user}}'@'%';",
             "FLUSH PRIVILEGES;"
         ],

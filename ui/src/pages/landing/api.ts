@@ -16,6 +16,18 @@ export function get_my_quick_links() {
     return axios.get(`/database/quick-links`).then(({ data }) => (data?.data?.quick_accesses ?? []) as IQuickLinkData[])
 }
 
+export function get_snapshot_download_link(snapshot: string) {
+    return axios.get(`/database/export-snapshot/${snapshot}`).then(({ data }) => (data?.data?.download_link) as string)
+}
+
+export function delete_snapshot(snapshot: string) {
+    return axios.delete(`/database/snapshot/${snapshot}`);
+}
+
+export function switch_to_snapshot(snapshot: string) {
+    return axios.post(`/database/switch-to-snapshot/${snapshot}`);
+}
+
 export function search_for_database_or_folder(query: string) {
     return axios.get(`/database/search?query=${query}`).then(({ data }) => (data?.data ?? {}) as ISearchResult);
 }

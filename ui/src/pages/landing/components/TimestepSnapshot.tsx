@@ -3,8 +3,15 @@ import { useState } from "react";
 import Visualizer from "../../../components/Visualizer";
 import { useParams } from "react-router";
 import { get_database_snapshots } from "./api";
-import { useQuery } from "react-query";
+import { useMutation, useQuery, useQueryClient } from "react-query";
 import { ISnapshot } from "context/types";
+import axios from "axios";
+import fileDownload from "js-file-download";
+import {
+  delete_snapshot,
+  get_snapshot_download_link,
+  switch_to_snapshot,
+} from "../api";
 
 const TimestepPoint = ({
   isClicked,
@@ -15,6 +22,46 @@ const TimestepPoint = ({
   onClick: () => void;
   snapshot: ISnapshot;
 }) => {
+  const queryClient = useQueryClient();
+
+  // delete snapshot
+  const delete_snapshot_mutation = useMutation(
+    (snapshot: string) => {
+      return delete_snapshot(snapshot);
+    },
+    {
+      onSuccess: (data) => {
+        // reload the snapshots
+        queryClient.invalidateQueries(["snapshots"]);
+      },
+    }
+  );
+
+  // switch to snapshot
+  const switch_to_snapshot_mutation = useMutation((snapshot: string) => {
+    return switch_to_snapshot(snapshot);
+  }, {
+    onSuccess: (data) => {
+      // reload the snapshots
+      queryClient.invalidateQueries(["snapshots"]);
+    },
+  });
+
+  // get_snapshot_download_link
+  const get_snapshot_download_link_mutation = useMutation(
+    (snapshot: string) => {
+      return get_snapshot_download_link(snapshot);
+    },
+    {
+      onSuccess: (download_link) => {
+        // download the file to a .sql file
+        axios.get(download_link, { responseType: "blob" }).then((res) => {
+          fileDownload(res.data, `${Date.now()}.sql`);
+        });
+      },
+    }
+  );
+
   return (
     <>
       <div
@@ -34,7 +81,7 @@ const TimestepPoint = ({
           style={{
             display: "flex",
             justifyContent: "space-between",
-            alignItems: "center"
+            alignItems: "center",
           }}
         >
           <p>{snapshot.humanTime}</p>
@@ -44,7 +91,7 @@ const TimestepPoint = ({
               borderRadius: "10px",
               padding: "1px 15px",
               backgroundColor: "#e7f5ff",
-              fontWeight: "bold"
+              fontWeight: "bold",
             }}
           >
             {snapshot.status ?? "active"}
@@ -52,7 +99,7 @@ const TimestepPoint = ({
         </div>
       </div>
 
-      {isClicked && (!snapshot.status || snapshot.status === 'done') ? (
+      {isClicked && (!snapshot.status || snapshot.status === "done") ? (
         <div
           style={{
             height: "550px",
@@ -81,9 +128,45 @@ const TimestepPoint = ({
               marginTop: "10px",
             }}
           >
-            <LoadingButton variant="outlined" size="small">export snapshot</LoadingButton>
-            <LoadingButton variant="outlined" size="small">switch to snapshot</LoadingButton>
-            <LoadingButton variant="outlined" size="small" color="error">delete snapshot</LoadingButton>
+            {/* export sql dumps */}
+            <LoadingButton
+              variant="outlined"
+              loading={get_snapshot_download_link_mutation.isLoading}
+              disabled={get_snapshot_download_link_mutation.isLoading}
+              size="small"
+              onClick={() => {
+                get_snapshot_download_link_mutation.mutate(snapshot._id);
+              }}
+            >
+              export snapshot
+            </LoadingButton>
+
+{/* switch to database snapshot */}
+            <LoadingButton
+              variant="outlined"
+              loading={switch_to_snapshot_mutation.isLoading}
+              disabled={switch_to_snapshot_mutation.isLoading}
+              size="small"
+              onClick={() => {
+                switch_to_snapshot_mutation.mutate(snapshot._id);
+              }}
+            >
+              switch to snapshot
+            </LoadingButton>
+
+{/* delete a snapshot */}
+            <LoadingButton
+              variant="outlined"
+              color="error"
+              loading={delete_snapshot_mutation.isLoading}
+              disabled={delete_snapshot_mutation.isLoading}
+              size="small"
+              onClick={() => {
+                delete_snapshot_mutation.mutate(snapshot._id);
+              }}
+            >
+              delete snapshot
+            </LoadingButton>
           </div>
         </div>
       ) : null}
@@ -121,7 +204,9 @@ const TimestepSnapshotComp = () => {
             key={index}
             snapshot={snapshot}
             isClicked={index === activeTimeStep}
-            onClick={() => setActiveTimestep(index === activeTimeStep ? -1 : index)}
+            onClick={() =>
+              setActiveTimestep(index === activeTimeStep ? -1 : index)
+            }
           />
         );
       })}

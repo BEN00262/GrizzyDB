@@ -23,6 +23,21 @@ router.post(
 router.use([EnsureIsAuthenticated]);
 
 router.get(
+  '/export-snapshot/:snapshot_reference',
+  DatabaseController.export_snapshot
+);
+
+router.delete(
+  '/snapshot/:snapshot_id',
+  DatabaseController.delete_snapshot
+);
+
+router.post(
+  '/switch-to-snapshot/:snapshot_reference',
+  DatabaseController.switch_to_snapshot
+);
+
+router.get(
   '/checkout',
   DatabaseController.initiate_payment
 );

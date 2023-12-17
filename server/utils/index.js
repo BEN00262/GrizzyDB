@@ -1,10 +1,25 @@
+import DotEnv from 'dotenv';
+import FindConfig from 'find-config';
+
+DotEnv.config({
+    path: FindConfig('.env')
+});
+
 import consola from 'consola';
 import handlebars from 'handlebars';
 import fs from 'fs/promises';
 import { fileURLToPath } from 'url';
 import path, { dirname } from 'path';
-
+import AWS from 'aws-sdk';
 import jwt from 'jsonwebtoken';
+import { nanoid } from 'nanoid';
+
+const s3 = new AWS.S3({
+  accessKeyId: process.env.ACCESS_KEY,
+  secretAccessKey: process.env.SECRET_ACCESS_KEY,
+  signatureVersion: "v4",
+  region: 'eu-west-2'
+});
 
 /**
  *
@@ -85,3 +100,48 @@ export function morph_name_to_valid_database_name(name, maxLength = 32) {
     dbName = dbName.slice(0, maxLength).trim();
     return dbName?.toLowerCase();
 }
+
+
+export const upload_file_to_s3 = async (file_path) => {
+    const file = await fs.readFile(file_path);
+
+    const params = {
+        Body: file,
+        ACL: 'public-read',
+        ContentType: 'text/plain',
+        ContentDisposition: 'inline',
+        Bucket: process.env.BUCKET_NAME,
+        Key: `sql_dumps/${nanoid(16)}`,
+    };
+
+    return s3.upload(params).promise();
+};
+
+// download the file with a given key
+export const download_sql_dump_file = async key => {
+    return s3.getObject({
+        Bucket: process.env.BUCKET_NAME,
+        Key: key
+    }).promise();
+}
+
+export const delete_sql_dump_file = async key => {
+    return s3.deleteObject({
+        Bucket: process.env.BUCKET_NAME,
+        Key: key
+    }).promise();
+}
+
+export const generate_signed_url_helper = async key => {
+    return s3.getSignedUrl('getObject', {
+        Bucket: process.env.BUCKET_NAME,
+        Key: key,
+        Expires: 60 * 60 * 5 // links should be valid for only 5 hours
+    })
+}
+
+/**
+ * 
+ * sudo apt install postgresql postgresql-contrib
+ * sudo apt install mysql-client
+ */

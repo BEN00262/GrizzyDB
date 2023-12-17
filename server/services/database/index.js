@@ -6,13 +6,21 @@ DotEnv.config({
 })
 
 import cryptoRandomString from 'crypto-random-string';
+import { file, dir } from 'tmp-promise'
 import { Sequelize } from 'sequelize';
 import SequelizeAuto from 'sequelize-auto';
 import { identify } from 'sql-query-identifier';
 import handlebars from 'handlebars';
-import { GrizzyDBException, morph_name_to_valid_database_name } from '../../utils/index.js';
+import { GrizzyDBException, morph_name_to_valid_database_name, upload_file_to_s3 } from '../../utils/index.js';
 import { generate_db_graph } from '../../utils/generate_db_ui_schema.js';
 import { templates } from './templates/index.js';
+import { promisify } from 'util';
+import { exec } from 'child_process';
+import path from 'path';
+import { nanoid } from 'nanoid';
+import fs from 'fs';
+
+const execute_commands_async = promisify(exec);
 
 export class GrizzyDatabaseEngine {
     static get_rds_uri(dialect) {
@@ -185,6 +193,112 @@ export class GrizzyDatabaseEngine {
         // generate graphql types and stuff
         // generate a single script -- compile it
 
+    }
+
+    static async rehydrate_database_with_snapshot(dialect, credentials, snapshot_path) {
+        if (!['postgres', 'mysql', 'mariadb'].includes(dialect)) {
+            throw new GrizzyDBException(`Database exports not supported for this dialect ${dialect}`)
+        }
+
+        // get latest snapshot
+        // drop db
+        const sequelize = new Sequelize(credentials.DB_NAME, credentials.DB_USER, credentials.DB_PASSWORD, {
+            host: credentials?.DB_HOST ? credentials.DB_HOST : GrizzyDatabaseEngine.get_rds_uri(dialect),
+            logging: false,
+            dialect: dialect === 'mariadb' ? 'mysql' : dialect /* weird kink fix it later */, /* one of 'mysql' | 'postgres' | 'sqlite' | 'mariadb' | 'mssql' | 'db2' | 'snowflake' | 'oracle' */
+        });
+
+        await sequelize.query(`DROP DATABASE ${credentials.DB_NAME};`);
+        await sequelize.close();
+        // create db
+
+        const template = templates[dialect.toLowerCase()];
+
+        if (template) {
+            const lsequelize = credentials?.DB_HOST ? new Sequelize({
+                host: credentials.DB_HOST,
+                username: credentials.DB_USER,
+                password: credentials.DB_PASSWORD,
+                logging: false,
+                dialect, /* one of 'mysql' | 'postgres' | 'sqlite' | 'mariadb' | 'mssql' | 'db2' | 'snowflake' | 'oracle' */
+            }) : GrizzyDatabaseEngine.get_database_factory(dialect);
+    
+            for (const statement of (template.reassign_database ?? [])) {
+                await lsequelize.query(handlebars.compile(statement)({
+                    database_name: credentials.DB_NAME,
+                    database_user: credentials.DB_USER,
+                    random_password: credentials.DB_PASSWORD
+                }));
+            }
+
+            // run snapshots
+            switch (dialect) {
+                case 'postgres':
+                    {
+                        await execute_commands_async(
+                            `psql -U ${credentials.DB_USER} -h ${credentials?.DB_HOST ? credentials.DB_HOST : GrizzyDatabaseEngine.get_rds_uri(dialect)} -p ${credentials.DB_PASSWORD} -d ${credentials.DB_NAME} < ${snapshot_path}`
+                        );
+                        
+                        break;
+                    }
+    
+                case 'mariadb':
+                case 'mysql':
+                    {
+                        await execute_commands_async(
+                            `mysql -u ${credentials.DB_USER} -p${credentials.DB_PASSWORD} -h ${credentials?.DB_HOST ? credentials.DB_HOST : GrizzyDatabaseEngine.get_rds_uri(dialect)} -B ${credentials.DB_NAME} < ${snapshot_path}`
+                        );
+    
+                        break;
+                    }
+    
+                default:
+                    throw new GrizzyDBException(`Database exports not supported for this dialect ${dialect}`)
+            }
+
+            await lsequelize.close();
+        }
+    }
+
+    static async dump_database_to_file(dialect, credentials) {
+        // get a temporary file --> upload the file later to s3 and save it
+        const { path: temp_folder_path, cleanup } = await dir();
+        const temp_file_path = path.join(temp_folder_path, `${nanoid(12)}.sql`);
+
+        switch (dialect) {
+            case 'postgres':
+                {
+                    await execute_commands_async(
+                        `pg_dump -U ${credentials.DB_USER} -h ${credentials?.DB_HOST ? credentials.DB_HOST : GrizzyDatabaseEngine.get_rds_uri(dialect)} -p ${credentials.DB_PASSWORD} -d ${credentials.DB_NAME} > ${temp_file_path}`
+                    );
+                    
+                    break;
+                }
+
+            case 'mariadb':
+            case 'mysql':
+                {
+                    await execute_commands_async(
+                        `mysqldump -u ${credentials.DB_USER} -p${credentials.DB_PASSWORD} -h ${credentials?.DB_HOST ? credentials.DB_HOST : GrizzyDatabaseEngine.get_rds_uri(dialect)} -B ${credentials.DB_NAME} > ${temp_file_path}`
+                    );
+
+                    break;
+                }
+
+            default:
+                throw new GrizzyDBException(`Database exports not supported for this dialect ${dialect}`)
+        }
+
+        if (!fs.existsSync(temp_file_path) || (fs.statSync(temp_file_path)).size === 0) {
+            throw new GrizzyDBException("Failed to dump database");
+        }
+
+        // upload it to s3 at this point
+        const result = await upload_file_to_s3(temp_file_path);
+
+        // cleanup();
+
+        return result.Key;
     }
 
     // we get the neweset schema compare it to point in time and generate migrations to arrive

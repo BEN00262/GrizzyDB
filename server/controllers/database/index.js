@@ -15,6 +15,8 @@ import {
 
 import {
   GrizzyDBException,
+  delete_sql_dump_file,
+  generate_signed_url_helper,
   get_installation_instructions_markdown,
   massage_error,
   massage_response,
@@ -77,20 +79,7 @@ export class DatabaseController {
       const { meta: { custom_data: { user_id, payment_reference }, event_name } } = req.body;
 
       switch (event_name) {
-        // case 'subscription_created': {
-        //   await SubscriptionModel.create({
-        //     owner: user_id,
-        //     reference: payment_reference,
-        //     endTime: moment().add(30, 'days')
-        //   });
-
-        //   break;
-        // }
-
         case 'subscription_payment_success': {
-          // await SubscriptionModel.updateOne({ payment_reference, owner: user_id }, {
-          //   status: 'paid'
-          // });
           await SubscriptionModel.create({
             owner: user_id,
             reference: payment_reference,
@@ -257,7 +246,29 @@ export class DatabaseController {
 
   static async switch_to_snapshot(req, res) {
     try {
+      const { snapshot_reference } = req.params;
 
+      const point_in_time_snapshot = await SnapshotModel.findOne({
+        _id: snapshot_reference
+      });
+
+      // save current as latest snapshot before rehydrating the DB
+      const snapshot = await SnapshotModel.create({
+        status: 'scheduled',
+        checksum: md5(`${Date.now}`), // this is a placeholder checksum
+        database: point_in_time_snapshot.database,
+        owner: req.user._id,
+        snapshot: LzString.compressToBase64("{}")
+      });
+
+      await sendToSnapshotGeneratorQueue({ 
+        database_id: snapshot.database,
+        snapshot_id: snapshot._id,
+        task: 'rehydrate',
+        rehydrate_snapshot_id: snapshot_reference
+      });
+
+      return massage_response({ status: true }, res);
     } catch (error) {
       return massage_response(error, res);
     }
@@ -265,14 +276,23 @@ export class DatabaseController {
 
   static async delete_snapshot(req, res) {
     try {
-
-      await SnapshotModel.deleteOne({
+      const snapshot = await SnapshotModel.findOne({
         _id: req.params.snapshot_id,
         owner: req.user._id
       });
 
+      if (snapshot) {
+        await snapshot.deleteOne();
+
+        if (snapshot.url_to_dump) {
+          // delete s3 record
+          await delete_sql_dump_file(snapshot.url_to_dump);
+        }
+      }
+
       // delete the snapshot from s3
 
+      return massage_response({ status: true }, res);
     } catch (error) {
       return massage_error(error, res);
     }
@@ -280,7 +300,24 @@ export class DatabaseController {
 
   static async export_snapshot(req, res) {
     try {
+      // get a signed link and send it to the ui
+      const { snapshot_reference } = req.params;
 
+      const snapshot = await SnapshotModel.findOne({
+        _id: snapshot_reference
+      });
+
+      if (!snapshot) {
+        return massage_error(
+          new GrizzyDBException("Failed to find snapshot"), res, 404
+        );
+      }
+
+      return massage_response({
+        download_link: await generate_signed_url_helper(
+          snapshot.url_to_dump
+        )
+      }, res);
     } catch (error) {
       return massage_error(error, res);
     }
@@ -343,7 +380,8 @@ export class DatabaseController {
 
         await sendToSnapshotGeneratorQueue({ 
           database_id: created_database._id,
-          snapshot_id: snapshot._id
+          snapshot_id: snapshot._id,
+          task: 'snapshot'
         });
       } else {
         const folder = await FolderModel.create({
@@ -373,7 +411,7 @@ export class DatabaseController {
 
         await Promise.allSettled(
           databases.map(async database => {
-            await sendToSnapshotGeneratorQueue({ database_id: database._id });
+            await sendToSnapshotGeneratorQueue({ database_id: database._id, task: 'snapshot' });
           })
         )
       }
@@ -567,7 +605,8 @@ export class DatabaseController {
 
       await sendToSnapshotGeneratorQueue({ 
         database_id: database._id,
-        snapshot_id: snapshot._id
+        snapshot_id: snapshot._id,
+        task: 'snapshot'
       });
 
       return massage_response(
