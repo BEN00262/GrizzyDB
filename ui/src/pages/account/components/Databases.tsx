@@ -27,12 +27,15 @@ import {
   IQuickLinkCreate,
 } from "../../../context/types";
 import {
+  check_if_subscribed,
   create_quick_links,
+  get_checkout_link,
   get_my_databases,
   move_to_folder,
 } from "../../landing/api";
 import FileMoveComp from "../../landing/components/FileMove";
 import FolderCreateComp from "../../landing/components/FolderCreate";
+import LoadingButton from "@mui/lab/LoadingButton";
 
 const DatabaseFolder = ({ folder }: { folder: IFolder }) => {
   const navigate = useNavigate();
@@ -234,6 +237,25 @@ export default function Databases() {
     }
   );
 
+  const { data: is_subscribed } = useQuery(
+    ["subscription"],
+    check_if_subscribed,
+    {
+      staleTime: 2000 /* recheck every 2 seconds */,
+    }
+  );
+
+  const checkout_link_mutation = useMutation(
+    () => {
+      return get_checkout_link();
+    },
+    {
+      onSuccess: (checkout_link) => {
+        window.location.href = checkout_link;
+      },
+    }
+  );
+
   return (
     <>
       <ProvisionModal
@@ -261,6 +283,40 @@ export default function Databases() {
           margin: "20px auto",
         }}
       />
+      {typeof is_subscribed === "boolean" && !is_subscribed ? (
+        <div
+          style={{
+            padding: "10px",
+            borderRadius: "2px",
+            backgroundColor: "#f7e771",
+          }}
+        >
+          <p
+            style={{
+              fontWeight: "bold",
+              letterSpacing: '1px'
+            }}
+            className="action-text"
+          >
+            You are currently on a free subscription, upgrade to enjoy the full
+            features of GrizzyDB
+          </p>
+          <LoadingButton
+            variant="outlined"
+            className="action-text"
+            size="small"
+            style={{
+              color: "black",
+              border: "1px solid #000",
+            }}
+            loading={checkout_link_mutation.isLoading}
+            disabled={checkout_link_mutation.isLoading}
+            onClick={() => checkout_link_mutation.mutate()}
+          >
+            change subscription
+          </LoadingButton>
+        </div>
+      ) : null}
       <Row>
         {databases.length || folders.length ? (
           <>

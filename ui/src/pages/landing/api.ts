@@ -24,6 +24,14 @@ export function create_quick_links(data: IQuickLinkCreate) {
     return axios.post(`/database/quick-links`, data);
 }
 
+export function get_checkout_link() {
+    return axios.get(`/database/checkout`).then(({ data }) => data?.data?.checkout_link as string);
+}
+
+export function check_if_subscribed() {
+    return axios.get(`/database/check-if-subscribed`).then(({ data }) => data?.data?.is_subscribed as boolean);
+}
+
 export function delete_quick_links(quick_link_reference: string) {
     return axios.delete(`/database/quick-links${quick_link_reference}`);
 }

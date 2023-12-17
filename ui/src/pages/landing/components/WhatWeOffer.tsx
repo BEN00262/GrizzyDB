@@ -12,7 +12,7 @@ import {
   IconFileCode,
   IconFolders,
   IconReceiptOff,
-  IconTopologyStar
+  IconTopologyStar,
 } from "@tabler/icons-react";
 import LoginComponent from "../../../components/Login";
 
@@ -53,8 +53,7 @@ const features = [
   {
     icon: IconTopologyStar,
     title: "ERD",
-    description:
-      "View relationships between your tables graphically",
+    description: "View relationships between your tables graphically",
   },
 ];
 
@@ -80,12 +79,13 @@ export function FeaturesGrid() {
     <div className={classes.wrapper}>
       <Grid gutter={80}>
         <Col span={12} md={5}>
-          {/* databases | schema management */}
           <Title className={classes.title} order={2}>
             Free Ephemeral Relational Databases for all your testing needs
           </Title>
           <Text c="dimmed" className="action-text">
-          Database Delight: Test with Might, Ephemeral and Free, Just like it should be! 🌐🚀 <br/>#DevJoy #DataFreePlay
+            Database Delight: Test with Might, Ephemeral and Free, Just like it
+            should be! 🌐🚀 <br />
+            #DevJoy #DataFreePlay
           </Text>
 
           <div
@@ -106,6 +106,15 @@ export function FeaturesGrid() {
           </SimpleGrid>
         </Col>
       </Grid>
+
+      {/* <Grid gutter={80} style={{ marginTop: "50px" }}>
+        <Col span={12} md={12}>
+          <Title className={classes.title} order={2}>
+            Pricing
+          </Title>
+          
+        </Col>
+      </Grid> */}
     </div>
   );
 }

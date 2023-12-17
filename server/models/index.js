@@ -6,3 +6,4 @@ export * from './snapshot.js';
 export * from './apikey.js';
 export * from './folder.js';
 export * from './favourites.js';
+export * from './subscription.js';

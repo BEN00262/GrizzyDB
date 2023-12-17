@@ -15,7 +15,22 @@ router.post(
   DatabaseController.update_self_hosted_schemas
 );
 
+router.post(
+  '/webhook',
+  DatabaseController.payment_webhook_handler
+);
+
 router.use([EnsureIsAuthenticated]);
+
+router.get(
+  '/checkout',
+  DatabaseController.initiate_payment
+);
+
+router.get(
+  '/check-if-subscribed',
+  DatabaseController.check_if_in_active_subscription
+);
 
 router.get(
   '/search',

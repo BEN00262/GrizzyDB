@@ -5,6 +5,7 @@ import {
   FolderModel,
   QuickAccessModel,
   SnapshotModel,
+  SubscriptionModel,
 } from "../../models/index.js";
 
 import {
@@ -26,8 +27,80 @@ import { nanoid } from "nanoid";
 import { generateApiKey } from "generate-api-key";
 import humanTime from "human-time";
 import { sendToSnapshotGeneratorQueue } from "../../rabbitmq/client.js";
+import {LemonSqueezy} from "@lemonsqueezy/lemonsqueezy.js";
+import moment from "moment";
+
+
+const lemon_squeezy_payments_gateway = new LemonSqueezy(process.env.LEMONSQUEEZY_API_KEY);
 
 export class DatabaseController {
+  // PAYMENTS
+  static async initiate_payment(req, res) {
+    try {
+      let attributes = {
+        checkout_data: {
+          // email: req.user.email,
+          // discount_code: '10PERCENT',
+          custom: {
+            user_id: req.user._id.toString()
+          }
+        },
+
+        product_options: {
+          redirect_url: 'http://127.0.0.1:5173/dashboard'
+        },
+
+        checkout_options: {
+          dark: true,
+          logo: true
+        }
+      }
+      
+      const checkout = await lemon_squeezy_payments_gateway.createCheckout({ 
+        storeId: 60226, variantId: 183948, attributes 
+      });
+
+      if (!checkout?.data?.attributes?.url) {
+        throw new GrizzyDBException("Failed to initialize checkout");
+      }
+
+      await SubscriptionModel.create({
+        owner: req.user._id,
+        reference: checkout.data.id,
+        endTime: moment().add(30, 'days')
+      });
+
+      return massage_response({ checkout_link: checkout?.data?.attributes?.url }, res);
+    } catch (error){
+      return massage_error(error, res);
+    }
+  }
+
+
+  static async payment_webhook_handler(req, res) {
+    try {
+
+    } catch (error) {
+      return massage_error(error, res);
+    }
+  }
+
+  static async check_if_in_active_subscription(req, res) {
+    try {
+      const active_subscription = await SubscriptionModel.count({
+        owner: req.user._id,
+        status: 'paid',
+        endTime: {
+          $gte: moment()
+        }
+      });
+
+      return massage_response({ is_subscribed: active_subscription > 0 }, res);
+    } catch (error) {
+      return massage_error(error, res);
+    }
+  }
+
   static async search_files_and_folders(req, res) {
     // we need a couple of stuff -- i guess
 
@@ -368,15 +441,25 @@ export class DatabaseController {
         selected_template,
       } = req.body;
 
-      // let already_provisioned_databases = await DatabaseModel.count({
-      //   owner: req.user._id,
-      // });
+      const active_subscription = await SubscriptionModel.count({
+        owner: req.user._id,
+        status: 'paid',
+        endTime: {
+          $gte: moment()
+        }
+      });
 
-      // if (already_provisioned_databases >= 3) {
-      //   throw new GrizzyDBException(
-      //     "You are only limited to a max of 3 databases on the BETA version"
-      //   );
-      // }
+      if (!active_subscription) {
+        let already_provisioned_databases = await DatabaseModel.count({
+          owner: req.user._id,
+        });
+  
+        if (already_provisioned_databases >= 3) {
+          throw new GrizzyDBException(
+            "You are only limited to a max of 3 databases on the free tier"
+          );
+        }
+      }
 
       // check what we have first
       if (selected_template === "bring_your_own") {
