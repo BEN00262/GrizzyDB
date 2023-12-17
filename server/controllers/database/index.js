@@ -77,19 +77,25 @@ export class DatabaseController {
       const { meta: { custom_data: { user_id, payment_reference }, event_name } } = req.body;
 
       switch (event_name) {
-        case 'subscription_created': {
+        // case 'subscription_created': {
+        //   await SubscriptionModel.create({
+        //     owner: user_id,
+        //     reference: payment_reference,
+        //     endTime: moment().add(30, 'days')
+        //   });
+
+        //   break;
+        // }
+
+        case 'subscription_payment_success': {
+          // await SubscriptionModel.updateOne({ payment_reference, owner: user_id }, {
+          //   status: 'paid'
+          // });
           await SubscriptionModel.create({
             owner: user_id,
             reference: payment_reference,
+            status: 'paid',
             endTime: moment().add(30, 'days')
-          });
-
-          break;
-        }
-
-        case 'subscription_payment_success': {
-          await SubscriptionModel.updateOne({ payment_reference, owner: user_id }, {
-            status: 'paid'
           });
 
           break;
