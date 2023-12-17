@@ -88,10 +88,10 @@ export class DatabaseController {
         }
 
         case 'subscription_payment_success': {
-          await SubscriptionModel.update({ payment_reference, owner: user_id }, {
+          await SubscriptionModel.updateOne({ payment_reference, owner: user_id }, {
             status: 'paid'
           });
-          
+
           break;
         }
       }
