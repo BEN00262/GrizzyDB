@@ -15,7 +15,7 @@ const subscriptionSchema = new mongoose.Schema({
 
     status: {
         type: String,
-        enum: ['paid', 'pending', 'failed'],
+        enum: ['paid', 'pending'],
         default: 'pending'
     },
 

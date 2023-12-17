@@ -42,7 +42,8 @@ export class DatabaseController {
           // email: req.user.email,
           // discount_code: '10PERCENT',
           custom: {
-            user_id: req.user._id.toString()
+            user_id: req.user._id.toString(),
+            payment_reference: nanoid(64)
           }
         },
 
@@ -64,12 +65,6 @@ export class DatabaseController {
         throw new GrizzyDBException("Failed to initialize checkout");
       }
 
-      await SubscriptionModel.create({
-        owner: req.user._id,
-        reference: checkout.data.id,
-        endTime: moment().add(30, 'days')
-      });
-
       return massage_response({ checkout_link: checkout?.data?.attributes?.url }, res);
     } catch (error){
       return massage_error(error, res);
@@ -79,7 +74,27 @@ export class DatabaseController {
 
   static async payment_webhook_handler(req, res) {
     try {
-      console.log(req.body);
+      const { meta: { custom_data: { user_id, payment_reference }, event_name } } = req.body;
+
+      switch (event_name) {
+        case 'subscription_created': {
+          await SubscriptionModel.create({
+            owner: user_id,
+            reference: payment_reference,
+            endTime: moment().add(30, 'days')
+          });
+
+          break;
+        }
+
+        case 'subscription_payment_success': {
+          await SubscriptionModel.update({ payment_reference, owner: user_id }, {
+            status: 'paid'
+          });
+          
+          break;
+        }
+      }
 
       return massage_response({ status: true }, res);
     } catch (error) {
