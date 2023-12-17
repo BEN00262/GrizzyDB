@@ -79,7 +79,9 @@ export class DatabaseController {
 
   static async payment_webhook_handler(req, res) {
     try {
+      console.log(req.body);
 
+      return massage_response({ status: true }, res);
     } catch (error) {
       return massage_error(error, res);
     }
