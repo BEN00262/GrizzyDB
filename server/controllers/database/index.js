@@ -47,7 +47,7 @@ export class DatabaseController {
         },
 
         product_options: {
-          redirect_url: 'http://127.0.0.1:5173/dashboard'
+          redirect_url: `${process.env.FRONTEND_UI_URL}/dashboard`
         },
 
         checkout_options: {
