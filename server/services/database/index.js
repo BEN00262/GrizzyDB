@@ -152,7 +152,7 @@ export class GrizzyDatabaseEngine {
         }
     }
 
-    static async get_databases_given_credentials(dialect, credentials = {}) {
+    static async get_databases_given_credentials_base(dialect, base_database, credentials = {}) {
         if (!Object.keys(credentials).length) {
             throw new GrizzyDBException("Invalid credentials");
         }
@@ -177,6 +177,24 @@ export class GrizzyDatabaseEngine {
                 databases.map(database =>  Object.values(database)).flat().filter(u => u)
             )
         ]
+    }
+
+    static async get_databases_given_credentials(dialect, credentials = {}) {
+        if (!Object.keys(credentials).length) {
+            throw new GrizzyDBException("Invalid credentials");
+        }
+
+        const schema = templates[dialect];
+
+        if (!schema) {
+            return []
+        }
+
+        try {
+            return GrizzyDatabaseEngine.get_databases_given_credentials_base(dialect, schema.base_database, credentials);
+        } catch (error) {
+            return GrizzyDatabaseEngine.get_databases_given_credentials_base(dialect, credentials.DB_USER, credentials);
+        }
     }
 
     // generate REST endpoints for a given database --> for now it will be slow af but we will imporve on it
