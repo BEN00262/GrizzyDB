@@ -284,6 +284,7 @@ export class GrizzyDatabaseEngine {
                         response = await sequelize.query(`SELECT query, calls, total_exec_time as total_time, mean_exec_time as mean_time FROM pg_stat_statements where userid = (select usesysid from pg_user where usename = CURRENT_USER) order by total_exec_time desc limit ${how_many_rows};`)
                     }
 
+                    break;
                 default:
                     for (const statement of (template.query_analytics ?? [])) {
                         response = await sequelize.query(handlebars.compile(statement)({
