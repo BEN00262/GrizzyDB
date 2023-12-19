@@ -32,7 +32,7 @@ import {
   provision_database,
 } from "./api";
 import { DatabaseCredentialsForm, IExternalCredentials } from "./Import";
-import { connect_external_database } from "../api";
+import { connect_external_database, import_from_external_database } from "../api";
 
 export const DBCard: React.FC<{
   database: IDatabase;
@@ -277,10 +277,14 @@ const ProvisionModal: React.FC<{
     };
   }
 
-  const { data: selectable_dbs } = useQuery(["available-datababes"], get_available_database, {
-    refetchOnWindowFocus: false,
-    staleTime: 30 * 1000 * 60, // 30 mins
-  });
+  const { data: selectable_dbs } = useQuery(
+    ["available-datababes"],
+    get_available_database,
+    {
+      refetchOnWindowFocus: false,
+      staleTime: 30 * 1000 * 60, // 30 mins
+    }
+  );
 
   React.useEffect(() => {
     if (Array.isArray(selectable_dbs)) {
@@ -301,6 +305,17 @@ const ProvisionModal: React.FC<{
 
       if (databaseTemplate.selected_template === "external") {
         return connect_external_database(
+          {
+            dialect: databaseTemplate.dialect,
+            credentials,
+            databases_selected,
+          },
+          params?.folder_id
+        );
+      }
+
+      if (databaseTemplate.selected_template === "external-import") {
+        return import_from_external_database(
           {
             dialect: databaseTemplate.dialect,
             credentials,
@@ -343,10 +358,9 @@ const ProvisionModal: React.FC<{
             style={{
               marginBottom: "20px",
             }}
-            severity="info"
+            severity="warning"
           >
-            Limited to a <b>100MB</b> per database on the BETA version ().{" "}
-            <b>The databases are deleted after 24hrs</b>
+            Limited to a <b>100MB</b> per database on the <b>free</b> version.
           </Alert>
 
           <Grid container spacing={2}>
@@ -424,6 +438,24 @@ const ProvisionModal: React.FC<{
                     </span>
                   }
                 />
+
+                <FormControlLabel
+                  className="select-radio"
+                  value="external-import"
+                  control={
+                    <Radio
+                      checked={
+                        databaseTemplate.selected_template === "external-import"
+                      }
+                    />
+                  }
+                  label={
+                    <span className="action-text">
+                      Import from external database
+                    </span>
+                  }
+                />
+
                 <FormControlLabel
                   className="select-radio"
                   value="sample"
@@ -463,11 +495,7 @@ const ProvisionModal: React.FC<{
                       disabled
                     />
                   }
-                  label={
-                    <span className="action-text">
-                      Import your database schema
-                    </span>
-                  }
+                  label={<span className="action-text">Schema management</span>}
                 />
               </RadioGroup>
             </div>
@@ -481,6 +509,15 @@ const ProvisionModal: React.FC<{
             ) : null}
 
             {databaseTemplate.selected_template === "external" ? (
+              <DatabaseCredentialsForm
+                dialect={databaseTemplate.dialect}
+                credentials={credentials}
+                setCredentials={setCredentials}
+                setDatabasesSelected={setDatabasesSelected}
+              />
+            ) : null}
+
+            {databaseTemplate.selected_template === "external-import" ? (
               <DatabaseCredentialsForm
                 dialect={databaseTemplate.dialect}
                 credentials={credentials}
@@ -528,6 +565,8 @@ const ProvisionModal: React.FC<{
             >
               {databaseTemplate.selected_template === "external"
                 ? "connect"
+                : databaseTemplate.selected_template === "external-import"
+                ? "import database(s)"
                 : "provision"}
             </LoadingButton>
           </div>

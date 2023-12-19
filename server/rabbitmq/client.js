@@ -1,6 +1,6 @@
 import amqp from 'amqplib/callback_api.js';
 
-export const sendToSnapshotGeneratorQueue = ({ database_id, snapshot_id, task, rehydrate_snapshot_id }) => new Promise((resolve,reject) => {
+export const sendToSnapshotGeneratorQueue = ({ database_id, snapshot_id, task, rehydrate_snapshot_id, remote_actual_credentials }) => new Promise((resolve,reject) => {
     amqp.connect(process.env.AMQP_SERVER_URI, (error0, connection) => {
         if (error0) { reject(error0); }
 
@@ -12,7 +12,7 @@ export const sendToSnapshotGeneratorQueue = ({ database_id, snapshot_id, task, r
             channel.sendToQueue(
                 process.env.SNAPSHOT_QUEUE,
                 Buffer.from(
-                    JSON.stringify({ database_id, snapshot_id, task, rehydrate_snapshot_id })
+                    JSON.stringify({ database_id, snapshot_id, task, rehydrate_snapshot_id, remote_actual_credentials })
                 ), 
                 { persistent: true }
             );

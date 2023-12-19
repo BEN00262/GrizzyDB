@@ -57,7 +57,7 @@ export interface ISampleTemplate {
     sql_statements: string
 }
 
-export type Template = 'custom' | 'sample' | 'none' | 'bring_your_own' | 'external'
+export type Template = 'custom' | 'sample' | 'none' | 'bring_your_own' | 'external' | 'external-import'
 
 export interface IDatabaseTemplate {
     dialect: DBDialect;

@@ -370,7 +370,127 @@ export class DatabaseController {
     } catch (error) {
       return massage_error(error, res);
     }
-  }  
+  }
+
+  static async import_databases_to_grizzy(req, res) {
+    try {
+      const { parent_folder } = req.params; // might be relevant i guess :)
+      let { credentials, dialect, databases_selected = [] } = req.body;
+
+      if (!databases_selected.length) {
+        databases_selected = await GrizzyDatabaseEngine.get_databases_given_credentials(
+          dialect, credentials
+        );
+      }
+
+      // ensure they cannot provision more dbs on the free tier
+      // const active_subscription = await SubscriptionModel.count({
+      //   owner: req.user._id,
+      //   status: 'paid',
+      //   endTime: { $gte: moment() }
+      // });
+
+      // if (!active_subscription) {
+      //   let already_provisioned_databases = await DatabaseModel.count({
+      //     owner: req.user._id,
+      //   });
+  
+      //   if (already_provisioned_databases >= 3) {
+      //     throw new GrizzyDBException(
+      //       "You are only limited to a max of 3 databases on the free tier"
+      //     );
+      //   }
+      // }
+
+      if (databases_selected.length === 1) {
+        const database = databases_selected[0];
+
+        const actual_credentials = await GrizzyDatabaseEngine.provision_database(dialect);
+
+        const created_database = await DatabaseModel.create({
+          name: database,
+          product_type: "hosted", // not really hosted bu we can use this
+          dialect,
+
+          credentials: CryptoJS.AES.encrypt(
+            JSON.stringify(actual_credentials),
+            process.env.MASTER_AES_ENCRYPTION_KEY
+          ),
+
+          ...(parent_folder ? { parent: parent_folder } : {}),
+          owner: req.user._id,
+        });
+
+        // create a snapshot
+        const snapshot = await SnapshotModel.create({
+          status: 'scheduled',
+          checksum: md5(`${Date.now}`), // this is a placeholder checksum
+          database: created_database._id,
+          owner: req.user._id,
+          snapshot: LzString.compressToBase64("{}")
+        });
+
+        // we have to import the data then rehydrate the database with it
+        await sendToSnapshotGeneratorQueue({ 
+          database_id: created_database._id,
+          snapshot_id: snapshot._id,
+          task: 'import',
+          remote_actual_credentials: {
+            ...credentials,
+            DB_NAME: database
+          }
+        });
+
+      } else {
+        const folder = await FolderModel.create({
+          name: `${credentials.DB_USER}-${Date.now()}`,
+          owner: req.user._id,
+          ...(parent_folder ? { parent: parent_folder } : {}),
+        });
+
+        // create the databases :)
+        await Promise.allSettled(
+          databases_selected.map(async database => {
+            const created_database = await DatabaseModel.create({
+              name: database,
+              product_type: "hosted", // not really hosted bu we can use this
+              dialect,
+
+              credentials: CryptoJS.AES.encrypt(
+                JSON.stringify({ ...credentials, DB_NAME: database }),
+                process.env.MASTER_AES_ENCRYPTION_KEY
+              ),
+
+              folder: folder._id,
+              owner: req.user._id,
+            });
+
+            const snapshot = await SnapshotModel.create({
+              status: 'scheduled',
+              checksum: md5(`${Date.now}`), // this is a placeholder checksum
+              database: created_database._id,
+              owner: req.user._id,
+              snapshot: LzString.compressToBase64("{}")
+            });
+
+            await sendToSnapshotGeneratorQueue({ 
+              database_id: created_database._id,
+              snapshot_id: snapshot._id,
+              task: 'import',
+              remote_actual_credentials: {
+                ...credentials,
+                DB_NAME: database
+              }
+            });
+          })
+        );
+      }
+
+      return massage_response({ status: true }, res);
+    } catch (error) {
+      return massage_error(error, res);
+    }
+  }
 
 
   static async import_database_from_external_source(req, res) {
@@ -423,9 +543,9 @@ export class DatabaseController {
         });
 
         // create the databases :)
-        const databases = (await Promise.allSettled(
+        await Promise.allSettled(
           databases_selected.map(async database => {
-            return await DatabaseModel.create({
+            const created_database = await DatabaseModel.create({
               name: database,
               product_type: "hosted", // not really hosted bu we can use this
               dialect,
@@ -438,8 +558,23 @@ export class DatabaseController {
               folder: folder._id,
               owner: req.user._id,
             });
+
+            // create a snapshot
+            const snapshot = await SnapshotModel.create({
+              status: 'scheduled',
+              checksum: md5(`${Date.now}`), // this is a placeholder checksum
+              database: created_database._id,
+              owner: req.user._id,
+              snapshot: LzString.compressToBase64("{}")
+            });
+
+            await sendToSnapshotGeneratorQueue({ 
+              database_id: created_database._id,
+              snapshot_id: snapshot._id,
+              task: 'snapshot'
+            });
           })
-        ))?.map(({ value }) => value)?.filter(u => u);
+        );
 
         await Promise.allSettled(
           databases.map(async database => {

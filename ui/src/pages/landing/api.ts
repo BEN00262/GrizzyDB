@@ -64,6 +64,10 @@ export function connect_external_database(data: any, parent_folder?: string) {
     return axios.post(`/database/connect-to-external-database${parent_folder ? "/" + parent_folder : ""}`, data);
 }
 
+export function import_from_external_database(data: any, parent_folder?: string) {
+    return axios.post(`/database/import-from-external-database${parent_folder ? "/" + parent_folder : ""}`, data);
+}
+
 export function move_to_folder(folder: string, database_reference: string) {
     return axios.post(`/database/folder/move-to`, { folder, database_reference });
 }

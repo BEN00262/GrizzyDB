@@ -84,6 +84,11 @@ router.post(
   DatabaseController.import_database_from_external_source
 );
 
+router.post(
+  '/import-from-external-database/:parent_folder?',
+  DatabaseController.import_databases_to_grizzy
+);
+
 router.post("/folder/move-to", DatabaseController.move_to_folder);
 router.post("/folder/move-out", DatabaseController.move_out_of_folder);
 router.post("/folder/:parent_folder?", DatabaseController.create_folder);

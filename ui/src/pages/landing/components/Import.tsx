@@ -9,7 +9,7 @@ import FormControlLabel from "@mui/material/FormControlLabel";
 import Modal from "@mui/material/Modal";
 import TextField from "@mui/material/TextField";
 import Grid from "@mui/material/Unstable_Grid2";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import FileUpload from "react-material-file-upload";
 import Select from "react-select";
 import { DBDialect, IDatabase } from "../../../context/types";
@@ -51,16 +51,20 @@ export const DatabaseCredentialsForm = ({ dialect, credentials, setCredentials, 
     }))
   }
 
-  const { data } = useQuery(['available-client-databases'], async () => {
+  const { data } = useQuery(['available-client-databases', credentials], async () => {
     return get_exposed_databases({
       dialect,
       credentials
     })
-  }, { enabled: !!Object.values(credentials).filter(u => u).length });
+  }, { enabled: Object.values(credentials).map(x => x?.trim()).every(u => u) });
 
   const options = useMemo(() => {
     return (data ?? [])?.map(x => ({ value: x, label: x }))
   }, [data]);
+
+  useEffect(() => {
+    console.log({ credentials, check: Object.values(credentials).map(x => x?.trim()).every(u => u) })
+  }, [credentials])
 
   return (
     <div

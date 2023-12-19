@@ -20,6 +20,7 @@ import fs from 'fs/promises';
 import { sendToSnapshotGeneratorQueue } from './client.js';
 import { download_sql_dump_file } from '../utils/index.js';
 
+// TODO: clean this
 
 ;(async () => {
     try {
@@ -39,7 +40,7 @@ import { download_sql_dump_file } from '../utils/index.js';
         
                 channel.consume(process.env.SNAPSHOT_QUEUE, async msg => {
 
-                    const { database_id, snapshot_id, rehydrate_snapshot_id, task } = JSON.parse(msg.content.toString());
+                    const { database_id, snapshot_id, rehydrate_snapshot_id, task, remote_actual_credentials } = JSON.parse(msg.content.toString());
 
                     try {
                         let [database, snapshot] = await Promise.all([
@@ -58,10 +59,11 @@ import { download_sql_dump_file } from '../utils/index.js';
                                 ).toString(CryptoJS.enc.Utf8)
                             );
     
+                            // if its an import stuff ( we dont do this we directly get the data from the remote server )
                             const schema_generated = JSON.stringify(
                                 await GrizzyDatabaseEngine.export_database_schema(
                                   database.dialect,
-                                  credentials
+                                  task === 'import' ? remote_actual_credentials : credentials
                                 )
                             );
                         
@@ -69,7 +71,7 @@ import { download_sql_dump_file } from '../utils/index.js';
     
                             const upload_location = await GrizzyDatabaseEngine.dump_database_to_file(
                                 database.dialect,
-                                credentials
+                                task === 'import' ? remote_actual_credentials : credentials
                             );
                     
                             // we good at this point
@@ -79,43 +81,67 @@ import { download_sql_dump_file } from '../utils/index.js';
                                 status: 'done',
                                 url_to_dump: upload_location
                             });
-    
-                            if (task === 'rehydrate') {
-                                const rehydrate_snapshot = await SnapshotModel.findOne({
-                                    _id: rehydrate_snapshot_id
-                                });
-    
-                                if (rehydrate_snapshot) {
-                                    // read the snapshot to a temp file
-                                    const { path, cleanup } = await file();
-    
-                                    const sql_dump = await download_sql_dump_file(
-                                        rehydrate_snapshot.url_to_dump
-                                    );
-    
-                                    await fs.writeFile(path, sql_dump.Body);
-    
-                                    await GrizzyDatabaseEngine.rehydrate_database_with_snapshot(
-                                        database.dialect,
-                                        credentials,
-                                        path
-                                    );
-    
-                                    const snapshot = await SnapshotModel.create({
-                                        status: 'scheduled',
-                                        checksum: md5(`${Date.now}`), // this is a placeholder checksum
-                                        database: database._id,
-                                        owner: database.owner,
-                                        snapshot: LzString.compressToBase64("{}")
-                                    });
-    
-                                    await sendToSnapshotGeneratorQueue({
-                                        database_id: database._id,
-                                        snapshot_id: snapshot._id,
-                                    });
-    
-                                    cleanup();
-                                }
+
+                            switch (task) {
+                                case 'rehydrate':
+                                    {
+                                        const rehydrate_snapshot = await SnapshotModel.findOne({
+                                            _id: rehydrate_snapshot_id
+                                        });
+            
+                                        if (rehydrate_snapshot) {
+                                            // read the snapshot to a temp file
+                                            const { path, cleanup } = await file();
+            
+                                            const sql_dump = await download_sql_dump_file(
+                                                rehydrate_snapshot.url_to_dump
+                                            );
+            
+                                            await fs.writeFile(path, sql_dump.Body);
+            
+                                            await GrizzyDatabaseEngine.rehydrate_database_with_snapshot(
+                                                database.dialect,
+                                                credentials,
+                                                path
+                                            );
+            
+                                            const snapshot = await SnapshotModel.create({
+                                                status: 'scheduled',
+                                                checksum: md5(`${Date.now}`), // this is a placeholder checksum
+                                                database: database._id,
+                                                owner: database.owner,
+                                                snapshot: LzString.compressToBase64("{}")
+                                            });
+            
+                                            await sendToSnapshotGeneratorQueue({
+                                                database_id: database._id,
+                                                snapshot_id: snapshot._id,
+                                            });
+            
+                                            cleanup();
+                                        }
+
+                                        break;
+                                    }
+
+                                case 'import':
+                                    {
+                                       const { path, cleanup } = await file();
+            
+                                       const sql_dump = await download_sql_dump_file(upload_location);
+       
+                                       await fs.writeFile(path, sql_dump.Body);
+       
+                                       await GrizzyDatabaseEngine.rehydrate_database_with_snapshot(
+                                           database.dialect,
+                                           credentials,
+                                           path
+                                       );
+       
+                                       cleanup();
+
+                                       break;
+                                    }
                             }
                         }
                     } catch (error) {
