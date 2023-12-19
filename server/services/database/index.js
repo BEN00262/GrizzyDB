@@ -213,6 +213,32 @@ export class GrizzyDatabaseEngine {
 
     }
 
+    static async get_query_analytics(dialect, how_many_rows = 10, credentials = {}) {
+        const template = templates[dialect.toLowerCase()];
+
+        if (template) {
+            const sequelize = new Sequelize(credentials.DB_NAME, credentials.DB_USER, credentials.DB_PASSWORD, {
+                host: credentials?.DB_HOST ? credentials.DB_HOST : GrizzyDatabaseEngine.get_rds_uri(dialect),
+                logging: false,
+                dialect: dialect === 'mariadb' ? 'mysql' : dialect /* weird kink fix it later */, /* one of 'mysql' | 'postgres' | 'sqlite' | 'mariadb' | 'mssql' | 'db2' | 'snowflake' | 'oracle' */
+            });
+
+            let response = null;
+    
+            for (const statement of (template.query_analytics ?? [])) {
+                response = await sequelize.query(handlebars.compile(statement)({
+                    how_many_rows
+                }));
+            }
+    
+            await sequelize.close();
+    
+            return response?.[0] ?? [];
+        }
+        
+        return [];
+    }
+
     static async rehydrate_database_with_snapshot(dialect, credentials, snapshot_path) {
         if (!['postgres', 'mysql', 'mariadb'].includes(dialect)) {
             throw new GrizzyDBException(`Database exports not supported for this dialect ${dialect}`)
@@ -254,7 +280,7 @@ export class GrizzyDatabaseEngine {
                 case 'postgres':
                     {
                         await execute_commands_async(
-                            `psql -U ${credentials.DB_USER} -h ${credentials?.DB_HOST ? credentials.DB_HOST : GrizzyDatabaseEngine.get_rds_uri(dialect)} -p ${credentials.DB_PASSWORD} -d ${credentials.DB_NAME} < ${snapshot_path}`
+                            `psql -U ${credentials.DB_USER} -h ${credentials?.DB_HOST ? credentials.DB_HOST : GrizzyDatabaseEngine.get_rds_uri(dialect)} -p "${credentials.DB_PASSWORD}" -d ${credentials.DB_NAME} < ${snapshot_path}`
                         );
                         
                         break;
@@ -264,7 +290,7 @@ export class GrizzyDatabaseEngine {
                 case 'mysql':
                     {
                         await execute_commands_async(
-                            `mysql -u ${credentials.DB_USER} -p${credentials.DB_PASSWORD} -h ${credentials?.DB_HOST ? credentials.DB_HOST : GrizzyDatabaseEngine.get_rds_uri(dialect)} -B ${credentials.DB_NAME} < ${snapshot_path}`
+                            `mysql -u ${credentials.DB_USER} -p "${credentials.DB_PASSWORD}" -h ${credentials?.DB_HOST ? credentials.DB_HOST : GrizzyDatabaseEngine.get_rds_uri(dialect)} -B ${credentials.DB_NAME} < ${snapshot_path}`
                         );
     
                         break;
@@ -287,7 +313,7 @@ export class GrizzyDatabaseEngine {
             case 'postgres':
                 {
                     await execute_commands_async(
-                        `pg_dump -U ${credentials.DB_USER} -h ${credentials?.DB_HOST ? credentials.DB_HOST : GrizzyDatabaseEngine.get_rds_uri(dialect)} -p ${credentials.DB_PASSWORD} -d ${credentials.DB_NAME} > ${temp_file_path}`
+                        `pg_dump -U ${credentials.DB_USER} -h ${credentials?.DB_HOST ? credentials.DB_HOST : GrizzyDatabaseEngine.get_rds_uri(dialect)} -p "${credentials.DB_PASSWORD}" -d ${credentials.DB_NAME} > ${temp_file_path}`
                     );
                     
                     break;
@@ -297,7 +323,7 @@ export class GrizzyDatabaseEngine {
             case 'mysql':
                 {
                     await execute_commands_async(
-                        `mysqldump -u ${credentials.DB_USER} -p${credentials.DB_PASSWORD} -h ${credentials?.DB_HOST ? credentials.DB_HOST : GrizzyDatabaseEngine.get_rds_uri(dialect)} -B ${credentials.DB_NAME} > ${temp_file_path}`
+                        `mysqldump -u ${credentials.DB_USER} -p "${credentials.DB_PASSWORD}" -h ${credentials?.DB_HOST ? credentials.DB_HOST : GrizzyDatabaseEngine.get_rds_uri(dialect)} -B ${credentials.DB_NAME} > ${temp_file_path}`
                     );
 
                     break;
