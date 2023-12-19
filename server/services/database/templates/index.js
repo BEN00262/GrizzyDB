@@ -30,6 +30,7 @@ export const templates = {
       "CREATE DATABASE IF NOT EXISTS {{database_name}};",
       "CREATE USER '{{database_user}}'@'%' IDENTIFIED BY '{{random_password}}';",
       "GRANT ALL PRIVILEGES ON {{database_name}}.* TO '{{database_user}}'@'%';",
+      `GRANT SELECT ON performance_schema.events_statements_summary_by_digest TO '{{database_user}}'@'%';`,
       "FLUSH PRIVILEGES;",
     ],
 
@@ -72,6 +73,7 @@ export const templates = {
       "CREATE DATABASE IF NOT EXISTS {{database_name}};",
       "CREATE USER '{{database_user}}'@'%' IDENTIFIED BY '{{random_password}}';",
       "GRANT ALL PRIVILEGES ON {{database_name}}.* TO '{{database_user}}'@'%';",
+      `GRANT SELECT ON performance_schema.events_statements_summary_by_digest TO '{{database_user}}'@'%';`,
       "FLUSH PRIVILEGES;",
     ],
 

@@ -275,6 +275,8 @@ export class GrizzyDatabaseEngine {
                 }));
             }
 
+            console.log({ dialect , yeah: 1 })
+
             // run snapshots
             switch (dialect) {
                 case 'postgres':
@@ -290,7 +292,7 @@ export class GrizzyDatabaseEngine {
                 case 'mysql':
                     {
                         await execute_commands_async(
-                            `mysql -u ${credentials.DB_USER} -p "${credentials.DB_PASSWORD}" -h ${credentials?.DB_HOST ? credentials.DB_HOST : GrizzyDatabaseEngine.get_rds_uri(dialect)} -B ${credentials.DB_NAME} < ${snapshot_path}`
+                            `mysql -u ${credentials.DB_USER} -p${credentials.DB_PASSWORD} -h ${credentials?.DB_HOST ? credentials.DB_HOST : GrizzyDatabaseEngine.get_rds_uri(dialect)} -B ${credentials.DB_NAME} < ${snapshot_path}`
                         );
     
                         break;
@@ -309,6 +311,8 @@ export class GrizzyDatabaseEngine {
         const { path: temp_folder_path, cleanup } = await dir();
         const temp_file_path = path.join(temp_folder_path, `${nanoid(12)}.sql`);
 
+        console.log({ dialect , yeah: 2, credentials })
+
         switch (dialect) {
             case 'postgres':
                 {
@@ -322,8 +326,9 @@ export class GrizzyDatabaseEngine {
             case 'mariadb':
             case 'mysql':
                 {
+                    console.log( `mysqldump -u ${credentials.DB_USER} -p'${credentials.DB_PASSWORD}' -h ${credentials?.DB_HOST ? credentials.DB_HOST : GrizzyDatabaseEngine.get_rds_uri(dialect)} -B ${credentials.DB_NAME} > ${temp_file_path}`)
                     await execute_commands_async(
-                        `mysqldump -u ${credentials.DB_USER} -p "${credentials.DB_PASSWORD}" -h ${credentials?.DB_HOST ? credentials.DB_HOST : GrizzyDatabaseEngine.get_rds_uri(dialect)} -B ${credentials.DB_NAME} > ${temp_file_path}`
+                        `mysqldump -u ${credentials.DB_USER} -p${credentials.DB_PASSWORD} -h ${credentials?.DB_HOST ? credentials.DB_HOST : GrizzyDatabaseEngine.get_rds_uri(dialect)} -B ${credentials.DB_NAME} > ${temp_file_path}`
                     );
 
                     break;
