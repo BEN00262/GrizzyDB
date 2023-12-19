@@ -5,20 +5,20 @@ DotEnv.config({
     path: FindConfig('.env')
 })
 
+import { exec } from 'child_process';
 import cryptoRandomString from 'crypto-random-string';
-import { file, dir } from 'tmp-promise'
+import fs from 'fs';
+import handlebars from 'handlebars';
+import { nanoid } from 'nanoid';
+import path from 'path';
 import { Sequelize } from 'sequelize';
 import SequelizeAuto from 'sequelize-auto';
 import { identify } from 'sql-query-identifier';
-import handlebars from 'handlebars';
-import { GrizzyDBException, morph_name_to_valid_database_name, upload_file_to_s3 } from '../../utils/index.js';
-import { generate_db_graph } from '../../utils/generate_db_ui_schema.js';
-import { templates } from './templates/index.js';
+import { dir } from 'tmp-promise';
 import { promisify } from 'util';
-import { exec } from 'child_process';
-import path from 'path';
-import { nanoid } from 'nanoid';
-import fs from 'fs';
+import { generate_db_graph } from '../../utils/generate_db_ui_schema.js';
+import { GrizzyDBException, upload_file_to_s3 } from '../../utils/index.js';
+import { templates } from './templates/index.js';
 
 const execute_commands_async = promisify(exec);
 
@@ -280,7 +280,7 @@ export class GrizzyDatabaseEngine {
                 case 'postgres':
                     {
                         await execute_commands_async(
-                            `psql -U ${credentials.DB_USER} -h ${credentials?.DB_HOST ? credentials.DB_HOST : GrizzyDatabaseEngine.get_rds_uri(dialect)} -p "${credentials.DB_PASSWORD}" -d ${credentials.DB_NAME} < ${snapshot_path}`
+                            `PGPASSWORD=${credentials.DB_PASSWORD} psql -U ${credentials.DB_USER} -h ${credentials?.DB_HOST ? credentials.DB_HOST : GrizzyDatabaseEngine.get_rds_uri(dialect)} -w -d ${credentials.DB_NAME} < ${snapshot_path}`
                         );
                         
                         break;
@@ -313,7 +313,7 @@ export class GrizzyDatabaseEngine {
             case 'postgres':
                 {
                     await execute_commands_async(
-                        `pg_dump -U ${credentials.DB_USER} -h ${credentials?.DB_HOST ? credentials.DB_HOST : GrizzyDatabaseEngine.get_rds_uri(dialect)} -p "${credentials.DB_PASSWORD}" -d ${credentials.DB_NAME} > ${temp_file_path}`
+                        `PGPASSWORD=${credentials.DB_PASSWORD} pg_dump -U ${credentials.DB_USER} -h ${credentials?.DB_HOST ? credentials.DB_HOST : GrizzyDatabaseEngine.get_rds_uri(dialect)} -w -d ${credentials.DB_NAME} > ${temp_file_path}`
                     );
                     
                     break;
