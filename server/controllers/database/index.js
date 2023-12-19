@@ -55,9 +55,6 @@ export class DatabaseController {
           ).toString(CryptoJS.enc.Utf8)
         );
 
-        console.log(database.dialect,
-          10, credentials)
-
         queries = await GrizzyDatabaseEngine.get_query_analytics(
           database.dialect,
           10, credentials

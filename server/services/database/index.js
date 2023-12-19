@@ -19,6 +19,7 @@ import { promisify } from 'util';
 import { generate_db_graph } from '../../utils/generate_db_ui_schema.js';
 import { GrizzyDBException, upload_file_to_s3 } from '../../utils/index.js';
 import { templates } from './templates/index.js';
+import mysql from 'mysql2';
 
 const execute_commands_async = promisify(exec);
 
@@ -193,7 +194,42 @@ export class GrizzyDatabaseEngine {
         try {
             return GrizzyDatabaseEngine.get_databases_given_credentials_base(dialect, schema.base_database, credentials);
         } catch (error) {
-            return GrizzyDatabaseEngine.get_databases_given_credentials_base(dialect, credentials.DB_USER, credentials);
+            const databases = [];
+
+            // mysql and mariadb
+            switch (dialect) {
+                case 'postgres':
+                    {
+                        const { stdout } = await execute_commands_async(
+                            `PGPASSWORD=${credentials.DB_PASSWORD} psql -U ${credentials.DB_USER} -h ${credentials?.DB_HOST ? credentials.DB_HOST : GrizzyDatabaseEngine.get_rds_uri(dialect)} -w -c "SELECT d.datname FROM pg_database d WHERE has_database_privilege(current_user, d.datname, 'CREATE');"`
+                        );
+
+                        console.log(stdout)
+
+                        return [
+                            ...new Set(
+                                stdout.trim().split('\n').map(u => u.trim()).filter(u => u)
+                            )
+                        ]
+                    }
+                case 'mariadb':
+                case 'mysql':
+                    {
+                        const { stdout } = await execute_commands_async(
+                            `mysql -u ${credentials.DB_USER} -p'${credentials.DB_PASSWORD}' -h ${credentials?.DB_HOST ? credentials.DB_HOST : GrizzyDatabaseEngine.get_rds_uri(dialect)} -e "SHOW DATABASES;"`
+                        );
+
+                        console.log(stdout)
+
+                        return [
+                            ...new Set(
+                                stdout.trim().split('\n').map(u => u.trim()).filter(u => u)
+                            )
+                        ]
+                    }
+            }
+
+            return databases;
         }
     }
 
@@ -310,8 +346,6 @@ export class GrizzyDatabaseEngine {
         // get a temporary file --> upload the file later to s3 and save it
         const { path: temp_folder_path, cleanup } = await dir();
         const temp_file_path = path.join(temp_folder_path, `${nanoid(12)}.sql`);
-
-        console.log({ dialect , yeah: 2, credentials })
 
         switch (dialect) {
             case 'postgres':
