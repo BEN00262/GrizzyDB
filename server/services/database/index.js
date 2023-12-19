@@ -180,6 +180,12 @@ export class GrizzyDatabaseEngine {
         ]
     }
 
+    /**
+     * 
+     * @param {string} dialect 
+     * @param {*} credentials 
+     * @returns {string[]}
+     */
     static async get_databases_given_credentials(dialect, credentials = {}) {
         if (!Object.keys(credentials).length) {
             throw new GrizzyDBException("Invalid credentials");
@@ -192,7 +198,8 @@ export class GrizzyDatabaseEngine {
         }
 
         try {
-            return GrizzyDatabaseEngine.get_databases_given_credentials_base(dialect, schema.base_database, credentials);
+            const databases = await GrizzyDatabaseEngine.get_databases_given_credentials_base(dialect, schema.base_database, credentials);
+            return databases;
         } catch (error) {
             const databases = [];
 
@@ -200,31 +207,27 @@ export class GrizzyDatabaseEngine {
             switch (dialect) {
                 case 'postgres':
                     {
-                        const { stdout } = await execute_commands_async(
+                        let { stdout } = await execute_commands_async(
                             `PGPASSWORD=${credentials.DB_PASSWORD} psql -U ${credentials.DB_USER} -h ${credentials?.DB_HOST ? credentials.DB_HOST : GrizzyDatabaseEngine.get_rds_uri(dialect)} -w -c "SELECT d.datname FROM pg_database d WHERE has_database_privilege(current_user, d.datname, 'CREATE');"`
                         );
 
-                        console.log(stdout)
+                        stdout = stdout.trim().split('\n').map(u => u.trim()).filter(u => u)
 
                         return [
-                            ...new Set(
-                                stdout.trim().split('\n').map(u => u.trim()).filter(u => u)
-                            )
+                            ...new Set(stdout.slice(2, stdout.length - 1))
                         ]
                     }
                 case 'mariadb':
                 case 'mysql':
                     {
-                        const { stdout } = await execute_commands_async(
+                        let { stdout } = await execute_commands_async(
                             `mysql -u ${credentials.DB_USER} -p'${credentials.DB_PASSWORD}' -h ${credentials?.DB_HOST ? credentials.DB_HOST : GrizzyDatabaseEngine.get_rds_uri(dialect)} -e "SHOW DATABASES;"`
                         );
 
-                        console.log(stdout)
+                        stdout = stdout.trim().split('\n').map(u => u.trim()).filter(u => u)
 
                         return [
-                            ...new Set(
-                                stdout.trim().split('\n').map(u => u.trim()).filter(u => u)
-                            )
+                            ...new Set(stdout.slice(2, stdout.length - 1))
                         ]
                     }
             }
