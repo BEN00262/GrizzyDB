@@ -1,5 +1,5 @@
 import axios from "axios";
-import { IDatabaseDisplay, IFolder, IQuickLinkCreate, IQuickLinkData, ISearchResult } from "../../context/types";
+import { IDatabaseDisplay, IFolder, IQueryAnalytic, IQuickLinkCreate, IQuickLinkData, ISearchResult } from "../../context/types";
 
 export function get_my_databases(folder_ref?:string) {
     return axios.get(`/database/list${folder_ref ? '/' + folder_ref : ''}`).then(({ data }) => ({
@@ -18,6 +18,10 @@ export function get_my_quick_links() {
 
 export function get_snapshot_download_link(snapshot: string) {
     return axios.get(`/database/export-snapshot/${snapshot}`).then(({ data }) => (data?.data?.download_link) as string)
+}
+
+export function get_query_analysis(database_reference: string) {
+    return axios.get(`/database/query-analytics/${database_reference}`).then(({ data }) => (data?.data?.queries ?? []) as IQueryAnalytic[])
 }
 
 export function delete_snapshot(snapshot: string) {

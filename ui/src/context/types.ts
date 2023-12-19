@@ -94,3 +94,10 @@ export interface ISearchResult {
     databases: IDatabaseDisplay[];
     folders: IFolder[];
 }
+
+export interface IQueryAnalytic {
+    query: string;
+    calls: number;
+    total_time: number;
+    mean_time: number;
+}

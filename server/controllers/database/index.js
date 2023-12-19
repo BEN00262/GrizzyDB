@@ -36,6 +36,41 @@ import moment from "moment";
 const lemon_squeezy_payments_gateway = new LemonSqueezy(process.env.LEMONSQUEEZY_API_KEY);
 
 export class DatabaseController {
+  static async get_query_analytics(req, res) {
+    try {
+      const { database_reference } = req.params;
+
+      const database = await DatabaseModel.findOne({
+        owner: req.user._id,
+        _id: database_reference
+      });
+
+      let queries = [];
+
+      if (database) {
+        const credentials = JSON.parse(
+          CryptoJS.AES.decrypt(
+            database.credentials,
+            process.env.MASTER_AES_ENCRYPTION_KEY
+          ).toString(CryptoJS.enc.Utf8)
+        );
+
+        console.log(database.dialect,
+          10, credentials)
+
+        queries = await GrizzyDatabaseEngine.get_query_analytics(
+          database.dialect,
+          10, credentials
+        );
+      }
+
+      return massage_response({ queries }, res);
+    } catch (error) {
+      return massage_error(error, res);
+    }
+  }
+
+
   // PAYMENTS
   static async initiate_payment(req, res) {
     try {

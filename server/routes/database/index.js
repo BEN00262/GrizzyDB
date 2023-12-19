@@ -23,6 +23,11 @@ router.post(
 router.use([EnsureIsAuthenticated]);
 
 router.get(
+  '/query-analytics/:database_reference',
+  DatabaseController.get_query_analytics
+);
+
+router.get(
   '/export-snapshot/:snapshot_reference',
   DatabaseController.export_snapshot
 );

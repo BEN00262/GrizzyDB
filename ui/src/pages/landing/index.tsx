@@ -29,6 +29,7 @@ import Markdown from "./components/Markdown";
 import Snapshots from "./components/Snapshots";
 import TimestepSnapshotComp from "./components/TimestepSnapshot";
 import { FeaturesGrid } from "./components/WhatWeOffer";
+import InsightsTab from "./components/Insights";
 
 const Credential: React.FC<ICredential> = ({ credentialKey, value }) => {
   return (
@@ -208,6 +209,7 @@ export function ProvisionedDB({ credentials, _id }: IDatabaseDisplay) {
       >
         <JTab>ERD</JTab>
         <JTab>Snapshots</JTab>
+        <JTab>Insights</JTab>
         <Tooltip title="Coming soon" arrow>
           <JTab disabled>Client</JTab>
         </Tooltip>
@@ -225,8 +227,12 @@ export function ProvisionedDB({ credentials, _id }: IDatabaseDisplay) {
         <TimestepSnapshotComp />
       </JTabPanel>
 
+      <JTabPanel value={2} sx={{ height: "75vh" }}>
+        <InsightsTab />
+      </JTabPanel>
+
       <JTabPanel
-        value={2}
+        value={3}
         sx={{
           height: "75vh",
           border: "1px solid #efefef",
@@ -245,11 +251,11 @@ export function ProvisionedDB({ credentials, _id }: IDatabaseDisplay) {
         /> */}
       </JTabPanel>
 
-      <JTabPanel value={3} sx={{ height: "75vh" }}>
+      <JTabPanel value={4} sx={{ height: "75vh" }}>
         {/* <BIComponent /> */}
       </JTabPanel>
 
-      <JTabPanel value={4} sx={{ height: "75vh" }}>
+      <JTabPanel value={5} sx={{ height: "75vh" }}>
         <div
           style={{
             height: "400px",
