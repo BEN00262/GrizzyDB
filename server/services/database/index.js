@@ -264,12 +264,35 @@ export class GrizzyDatabaseEngine {
 
             let response = null;
     
-            for (const statement of (template.query_analytics ?? [])) {
-                response = await sequelize.query(handlebars.compile(statement)({
-                    how_many_rows
-                }));
+            // we have to check version for postgres somehow
+
+            switch (dialect) {
+                case 'postgres':
+                    // a bit different
+                    // check the version first
+                    await sequelize.query("CREATE EXTENSION IF NOT EXISTS pg_stat_statements;");
+                    // TODO: make this more dynamic
+                    // const database_version = await sequelize.databaseVersion();
+
+                    try {
+                        // newer postgres versions
+                        response = await sequelize.query(`SELECT query, calls, total_time, mean_time
+                        FROM pg_stat_statements where userid = (select usesysid from pg_user where usename = CURRENT_USER) order by total_time desc limit ${how_many_rows};`);
+
+                    } catch (error) {
+                        // older versions
+                        response = await sequelize.query(`SELECT query, calls, total_exec_time as total_time, mean_exec_time as mean_time FROM pg_stat_statements where userid = (select usesysid from pg_user where usename = CURRENT_USER) order by total_exec_time desc limit ${how_many_rows};`)
+                    }
+
+                default:
+                    for (const statement of (template.query_analytics ?? [])) {
+                        response = await sequelize.query(handlebars.compile(statement)({
+                            how_many_rows
+                        }));
+                    }
             }
     
+            // close the connection
             await sequelize.close();
     
             return response?.[0] ?? [];
