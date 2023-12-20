@@ -384,23 +384,23 @@ export class DatabaseController {
       }
 
       // ensure they cannot provision more dbs on the free tier
-      // const active_subscription = await SubscriptionModel.count({
-      //   owner: req.user._id,
-      //   status: 'paid',
-      //   endTime: { $gte: moment() }
-      // });
+      const active_subscription = await SubscriptionModel.count({
+        owner: req.user._id,
+        status: 'paid',
+        endTime: { $gte: moment() }
+      });
 
-      // if (!active_subscription) {
-      //   let already_provisioned_databases = await DatabaseModel.count({
-      //     owner: req.user._id,
-      //   });
+      if (!active_subscription) {
+        let already_provisioned_databases = await DatabaseModel.count({
+          owner: req.user._id,
+        });
   
-      //   if (already_provisioned_databases >= 3) {
-      //     throw new GrizzyDBException(
-      //       "You are only limited to a max of 3 databases on the free tier"
-      //     );
-      //   }
-      // }
+        if (already_provisioned_databases >= 3) {
+          throw new GrizzyDBException(
+            "You are only limited to a max of 3 databases on the free tier"
+          );
+        }
+      }
 
       if (databases_selected.length === 1) {
         const database = databases_selected[0];

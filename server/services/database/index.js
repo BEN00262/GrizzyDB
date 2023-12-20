@@ -109,7 +109,7 @@ export class GrizzyDatabaseEngine {
         }
 
         return {
-            DB_NAME: database_name,
+            DB_NAME: dialect === 'postgres' ? database_name.toLowerCase() : database_name,
             DB_USER: database_user,
             DB_PASSWORD: random_password
         }
@@ -250,6 +250,27 @@ export class GrizzyDatabaseEngine {
         // generate graphql types and stuff
         // generate a single script -- compile it
 
+    }
+
+    static async database_to_database_etl(from_dialect, to_dialect, to_database /* this DB must be within Grizzy */, credentials = {}) {
+        switch (from_dialect) {
+            case 'mariadb':
+            case 'mysql':
+                {
+                    switch (to_dialect) {
+                        case 'postgres':
+                            {
+                                const { stderr } = await execute_commands_async(
+                                    `pgloader --quiet mysql://${credentials.DB_USER}:${credentials.DB_PASSWORD}@${credentials.DB_HOST}/${credentials.DB_NAME} pgsql://${process.env.MASTER_POSTGRES_USERNAME}:${process.env.MASTER_POSTGRES_PASSWORD}@${process.env.MASTER_POSTGRES_URI}/${to_database}`
+                                );
+
+                                if (stderr?.toLowerCase()?.includes('kaboom!')) {
+                                    throw new GrizzyDBException('Failed to import database')
+                                }
+                            }
+                    }
+                }
+        }
     }
 
     static async get_query_analytics(dialect, how_many_rows = 10, credentials = {}) {
