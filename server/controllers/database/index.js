@@ -92,7 +92,7 @@ export class DatabaseController {
       }
       
       const checkout = await lemon_squeezy_payments_gateway.createCheckout({ 
-        storeId: 60226, variantId: 183948, attributes 
+        storeId: 60226, variantId: 188292, attributes 
       });
 
       if (!checkout?.data?.attributes?.url) {
