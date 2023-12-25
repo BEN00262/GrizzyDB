@@ -1,8 +1,5 @@
 import { ActionIcon, Container, Group, createStyles, rem } from "@mantine/core";
-import {
-  IconBrandGithub,
-  IconBrandTwitter
-} from "@tabler/icons-react";
+import { IconBrandGithub, IconBrandTwitter } from "@tabler/icons-react";
 
 const useStyles = createStyles((theme) => ({
   footer: {
@@ -48,10 +45,20 @@ export function FooterSocial() {
           }}
         />
         <Group spacing={0} className={classes.links} position="right" noWrap>
-          <ActionIcon size="lg">
+          <ActionIcon
+            size="lg"
+            onClick={() => {
+              window.open("https://twitter.com/grizzy_db", "_blank");
+            }}
+          >
             <IconBrandTwitter size="1.05rem" stroke={1.5} />
           </ActionIcon>
-          <ActionIcon size="lg">
+          <ActionIcon
+            size="lg"
+            onClick={() => {
+              window.open("https://github.com/GrizzyDB", "_blank");
+            }}
+          >
             <IconBrandGithub
               size="1.05rem"
               stroke={1.5}

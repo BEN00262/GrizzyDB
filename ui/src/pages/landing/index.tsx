@@ -377,11 +377,27 @@ const LandingPage = () => {
         >
           <div
             style={{
-              flex: 2,
+              flex: 3,
             }}
           >
             <img
-              src="/folders.png"
+              src="/create.png"
+              style={{
+                width: "100%",
+                borderRadius: "2px",
+                objectFit: "contain",
+                border: "1px solid #d3d3d3",
+                transform: 'rotate(10deg)'
+              }}
+            />
+          </div>
+          <div
+            style={{
+              flex: 3,
+            }}
+          >
+            <img
+              src="/home.png"
               style={{
                 width: "100%",
                 borderRadius: "2px",
@@ -392,31 +408,17 @@ const LandingPage = () => {
           </div>
           <div
             style={{
-              flex: 4,
+              flex: 3,
             }}
           >
             <img
-              src="/dbpopup.png"
+              src="/database.png"
               style={{
                 width: "100%",
                 borderRadius: "2px",
                 objectFit: "contain",
                 border: "1px solid #d3d3d3",
-              }}
-            />
-          </div>
-          <div
-            style={{
-              flex: 2,
-            }}
-          >
-            <img
-              src="/mesh.png"
-              style={{
-                width: "100%",
-                borderRadius: "2px",
-                objectFit: "contain",
-                border: "1px solid #d3d3d3",
+                transform: 'rotate(10deg)'
               }}
             />
           </div>
