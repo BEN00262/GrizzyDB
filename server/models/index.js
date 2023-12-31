@@ -7,3 +7,4 @@ export * from './apikey.js';
 export * from './folder.js';
 export * from './favourites.js';
 export * from './subscription.js';
+export * from './pricing.js';

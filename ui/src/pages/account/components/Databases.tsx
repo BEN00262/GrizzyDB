@@ -36,6 +36,7 @@ import {
 import FileMoveComp from "../../landing/components/FileMove";
 import FolderCreateComp from "../../landing/components/FolderCreate";
 import LoadingButton from "@mui/lab/LoadingButton";
+import { PricingModal } from "../../../components/PricingModal";
 
 const DatabaseFolder = ({ folder }: { folder: IFolder }) => {
   const navigate = useNavigate();
@@ -245,17 +246,6 @@ export default function Databases() {
     }
   );
 
-  const checkout_link_mutation = useMutation(
-    () => {
-      return get_checkout_link();
-    },
-    {
-      onSuccess: (checkout_link) => {
-        window.location.href = checkout_link;
-      },
-    }
-  );
-
   return (
     <>
       <ProvisionModal
@@ -301,7 +291,7 @@ export default function Databases() {
             You are currently on a free subscription, upgrade to enjoy the full
             features of GrizzyDB
           </p>
-          <LoadingButton
+          {/* <LoadingButton
             variant="outlined"
             className="action-text"
             size="small"
@@ -314,7 +304,8 @@ export default function Databases() {
             onClick={() => checkout_link_mutation.mutate()}
           >
             change subscription
-          </LoadingButton>
+          </LoadingButton> */}
+          <PricingModal/>
         </div>
       ) : null}
       <Row>
@@ -322,14 +313,14 @@ export default function Databases() {
           <>
             {folders.map((folder, position) => {
               return (
-                <Col xs={6} md={3} lg={2} key={position}>
+                <Col xs={6} md={4} lg={2} key={position}>
                   <DatabaseFolder folder={folder} />
                 </Col>
               );
             })}
             {databases.map((database, position) => {
               return (
-                <Col xs={6} md={3} lg={2} key={position}>
+                <Col xs={6} md={4} lg={2} key={position}>
                   <DatabaseFile database={database} />
                 </Col>
               );

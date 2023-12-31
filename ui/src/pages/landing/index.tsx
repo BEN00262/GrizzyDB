@@ -30,6 +30,8 @@ import Snapshots from "./components/Snapshots";
 import TimestepSnapshotComp from "./components/TimestepSnapshot";
 import { FeaturesGrid } from "./components/WhatWeOffer";
 import InsightsTab from "./components/Insights";
+import { SimpleGrid } from "@mantine/core";
+import {PricingContainer} from "../../components/Pricing";
 
 const Credential: React.FC<ICredential> = ({ credentialKey, value }) => {
   return (
@@ -331,9 +333,9 @@ const LandingPage = () => {
   const { isSignedIn } = useAuth();
   const navigate = useNavigate();
 
-  if (isSignedIn) {
-    navigate("/dashboard", { replace: true });
-  }
+  // if (isSignedIn) {
+  //   navigate("/dashboard", { replace: true });
+  // }
 
   return (
     <div>
@@ -358,6 +360,15 @@ const LandingPage = () => {
             objectFit: "contain",
           }}
         />
+
+        {/* <div style={{
+          display: "flex",
+          flexDirection: "row",
+          gap: "10px"
+        }}>
+        <div>Features</div>
+        <div>Pricing</div>
+        </div> */}
       </div>
       <Hero />
 
@@ -427,6 +438,62 @@ const LandingPage = () => {
 
       <Container>
         <FeaturesGrid />
+      </Container>
+
+      <>
+        {/* find a way to join them together */}
+        <div
+          style={{
+            display: "flex",
+            width: "100%",
+            alignItems: "center",
+            justifyContent: "center",
+            marginBottom: "100px",
+            gap: "5px",
+            padding: "50px",
+            boxSizing: "border-box",
+          }}
+        >
+          <div
+            style={{
+              flex: 3,
+            }}
+          >
+            <img
+              src="/insights.png"
+              style={{
+                width: "100%",
+                borderRadius: "2px",
+                objectFit: "contain",
+                border: "1px solid #d3d3d3",
+                transform: 'rotate(10deg)'
+              }}
+            />
+          </div>
+          <div
+            style={{
+              flex: 3,
+            }}
+          >
+            <img
+              src="/snapshots.png"
+              style={{
+                width: "100%",
+                borderRadius: "2px",
+                objectFit: "contain",
+                border: "1px solid #d3d3d3",
+                transform: 'rotate(-10deg)'
+              }}
+            />
+          </div>
+        </div>
+      </>
+
+      <Container style={{
+        display: "flex",
+        justifyContent: "center"
+      }}>
+        <PricingContainer/>
       </Container>
 
       <FooterSocial />

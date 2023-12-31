@@ -1,5 +1,5 @@
 import axios from "axios";
-import { IDatabaseDisplay, IFolder, IQueryAnalytic, IQuickLinkCreate, IQuickLinkData, ISearchResult } from "../../context/types";
+import { IDatabaseDisplay, IFolder, IPricingDeal, IQueryAnalytic, IQuickLinkCreate, IQuickLinkData, ISearchResult } from "../../context/types";
 
 export function get_my_databases(folder_ref?:string) {
     return axios.get(`/database/list${folder_ref ? '/' + folder_ref : ''}`).then(({ data }) => ({
@@ -24,6 +24,10 @@ export function get_query_analysis(database_reference: string) {
     return axios.get(`/database/query-analytics/${database_reference}`).then(({ data }) => (data?.data?.queries ?? []) as IQueryAnalytic[])
 }
 
+export function get_pricing_deals() {
+    return axios.get("/database/pricing").then(({ data }) => (data?.data?.pricing_deals ?? []) as IPricingDeal[])
+}
+
 export function delete_snapshot(snapshot: string) {
     return axios.delete(`/database/snapshot/${snapshot}`);
 }
@@ -40,8 +44,8 @@ export function create_quick_links(data: IQuickLinkCreate) {
     return axios.post(`/database/quick-links`, data);
 }
 
-export function get_checkout_link() {
-    return axios.get(`/database/checkout`).then(({ data }) => data?.data?.checkout_link as string);
+export function get_checkout_link(payment_reference: string, duration: string) {
+    return axios.get(`/database/checkout/${payment_reference}/${duration}`).then(({ data }) => data?.data?.checkout_link as string);
 }
 
 export function check_if_subscribed() {

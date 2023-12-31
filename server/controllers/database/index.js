@@ -3,6 +3,7 @@ import {
   DatabaseModel,
   DatabaseProvisionModel,
   FolderModel,
+  PricingModel,
   QuickAccessModel,
   SnapshotModel,
   SubscriptionModel,
@@ -69,12 +70,37 @@ export class DatabaseController {
 
 
   // PAYMENTS
+  static async get_pricing_deals(req, res) {
+    try {
+
+      const pricing_deals = await PricingModel.find({
+        enabled: true
+      });
+
+      return massage_response({ pricing_deals }, res);
+    } catch (error) {
+      return massage_error(error, res);
+    }
+  }
+
+
   static async initiate_payment(req, res) {
     try {
+      const { pricing_deal_reference, duration } = req.params;
+
+      // get the deal first
+      const deal = await PricingModel.findOne({
+        _id: pricing_deal_reference
+      });
+
+      if (!deal) {
+        throw new GrizzyDBException("Invalid pricing reference");
+      }
+
+      console.log(deal)
+
       let attributes = {
         checkout_data: {
-          // email: req.user.email,
-          // discount_code: '10PERCENT',
           custom: {
             user_id: req.user._id.toString(),
             payment_reference: nanoid(64)
@@ -91,8 +117,11 @@ export class DatabaseController {
         }
       }
       
+      // get the value from the frontend
+      // we offer yearly subscriptions also
+
       const checkout = await lemon_squeezy_payments_gateway.createCheckout({ 
-        storeId: 60226, variantId: +process.env.VARIANT_ID, attributes 
+        storeId: 60226, variantId: duration === 'yearly' ? +deal.yVariantID : +deal.variantID /* this one is dynamic */, attributes 
       });
 
       if (!checkout?.data?.attributes?.url) {
@@ -116,6 +145,8 @@ export class DatabaseController {
             owner: user_id,
             reference: payment_reference,
             status: 'paid',
+
+            // we have to get the dates from the subscription object
             endTime: moment().add(30, 'days')
           });
 

@@ -101,3 +101,12 @@ export interface IQueryAnalytic {
     total_time: number;
     mean_time: number;
 }
+
+export interface IPricingDeal {
+    _id: string;
+    enabled: boolean;
+    variantID: number;
+    yVariantID: number;
+    caption: string;
+    features: string[];
+}

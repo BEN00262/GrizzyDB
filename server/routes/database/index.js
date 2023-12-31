@@ -20,6 +20,11 @@ router.post(
   DatabaseController.payment_webhook_handler
 );
 
+router.get(
+  '/pricing',
+  DatabaseController.get_pricing_deals
+);
+
 router.use([EnsureIsAuthenticated]);
 
 router.get(
@@ -43,7 +48,7 @@ router.post(
 );
 
 router.get(
-  '/checkout',
+  '/checkout/:pricing_deal_reference/:duration',
   DatabaseController.initiate_payment
 );
 

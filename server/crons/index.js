@@ -23,6 +23,8 @@ agenda.define('delete expired databases', async job => {
         }
     });
 
+    // make this generic
+    // NOTE: look into database types first before spinning this up
     const sequelize = new Sequelize({
         host: process.env.MASTER_MARIADB_URI,
         username: process.env.MASTER_MARIADB_USERNAME,

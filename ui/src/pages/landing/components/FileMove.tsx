@@ -308,7 +308,7 @@ const FileMoveComp = () => {
           >
             {databases.map((database, position) => {
               return (
-                <Col xs={6} md={3} lg={2} key={position}>
+                <Col xs={6} md={4} lg={2} key={position}>
                   <div
                     style={{
                       border: `1px solid ${
