@@ -1,21 +1,13 @@
-import { useState } from 'react';
 import Col from 'react-bootstrap/Col';
 import Container from 'react-bootstrap/Container';
 import Row from 'react-bootstrap/Row';
 import { TypeAnimation } from 'react-type-animation';
 import LoginComponent from '../../../components/Login';
-import ProvisionModal from './Provision';
 
 function Hero() {
-    const [isProvisionModalopen, setIsProvisionModalOpen] = useState(false);
-
     return (
         <div className='hero'>
             <Container className='hero-main'>
-                <ProvisionModal
-                    open={isProvisionModalopen}
-                    handleClose={() => setIsProvisionModalOpen(false)}
-                />
                 <Row>
                     <Col className='pb-3' style={{
                         marginTop: "100px",
