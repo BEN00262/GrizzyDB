@@ -61,8 +61,8 @@ export const PricingContainer = () => {
               <Switch
                 checked={monthly}
                 onChange={handleChange}
-                checkedIcon={null}
-                uncheckedIcon={null}
+               //  checkedIcon={null}
+               //  uncheckedIcon={null}
                 boxShadow=""
                 activeBoxShadow=""
                 width={45}
@@ -139,12 +139,14 @@ export const PricingContainer = () => {
                     w={"100%"}
                     align="center"
                     spacing={10}
+                    // @ts-ignore
                     sx={{
                       color:
                         theme.colorScheme === "light" && "hsl(233, 13%, 49%)",
                     }}
                   >
                     <Divider
+                    // @ts-ignore
                       sx={{
                         width: "100%",
                         borderColor: theme.colorScheme === "dark" && "gray",
@@ -155,6 +157,7 @@ export const PricingContainer = () => {
                       3 databases
                     </Text>
                     <Divider
+                    // @ts-ignore
                       sx={{
                         width: "100%",
                         borderColor: theme.colorScheme === "dark" && "gray",
@@ -165,6 +168,7 @@ export const PricingContainer = () => {
                       Databases removed after 24hrs
                     </Text>
                     <Divider
+                    // @ts-ignore
                       sx={{
                         width: "100%",
                         borderColor: theme.colorScheme === "dark" && "gray",
@@ -175,6 +179,7 @@ export const PricingContainer = () => {
                       Limited to 20mb per database
                     </Text>
                     <Divider
+                    // @ts-ignore
                       sx={{
                         width: "100%",
                         borderColor: theme.colorScheme === "dark" && "gray",
@@ -252,6 +257,7 @@ export const PricingContainer = () => {
                       </Title>
                       <Stack w={"100%"} align="center" spacing={10}>
                         <Divider
+                        // @ts-ignore
                           sx={{
                             width: "100%",
                             borderColor:
@@ -266,6 +272,7 @@ export const PricingContainer = () => {
                                 {feature}
                               </Text>
                               <Divider
+                              // @ts-ignore
                                 sx={{
                                   width: "100%",
                                   borderColor:

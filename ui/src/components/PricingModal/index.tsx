@@ -159,6 +159,7 @@ export const PricingModal = () => {
                           </Title>
                           <Stack w={"100%"} align="center" spacing={10}>
                             <Divider
+                            // @ts-ignore
                               sx={{
                                 width: "100%",
                                 borderColor:
@@ -173,6 +174,7 @@ export const PricingModal = () => {
                                     {feature}
                                   </Text>
                                   <Divider
+                                  // @ts-ignore
                                     sx={{
                                       width: "100%",
                                       borderColor:
