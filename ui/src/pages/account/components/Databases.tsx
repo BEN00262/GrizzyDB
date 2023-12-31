@@ -1,5 +1,4 @@
 import StorageIcon from "@mui/icons-material/Storage";
-import Button from "@mui/material/Button";
 import { useState } from "react";
 import Col from "react-bootstrap/Col";
 import Row from "react-bootstrap/Row";
@@ -21,6 +20,7 @@ import { LuNetwork } from "react-icons/lu";
 
 import { useNavigate, useParams } from "react-router-dom";
 import NotFoundSvg from "../../../assets/not_found.svg";
+import { PricingModal } from "../../../components/PricingModal";
 import {
   IDatabaseDisplay,
   IFolder,
@@ -29,14 +29,11 @@ import {
 import {
   check_if_subscribed,
   create_quick_links,
-  get_checkout_link,
   get_my_databases,
-  move_to_folder,
+  move_to_folder
 } from "../../landing/api";
 import FileMoveComp from "../../landing/components/FileMove";
 import FolderCreateComp from "../../landing/components/FolderCreate";
-import LoadingButton from "@mui/lab/LoadingButton";
-import { PricingModal } from "../../../components/PricingModal";
 
 const DatabaseFolder = ({ folder }: { folder: IFolder }) => {
   const navigate = useNavigate();
@@ -248,24 +245,7 @@ export default function Databases() {
 
   return (
     <>
-      <ProvisionModal
-        open={isProvisionModalopen}
-        handleClose={() => setIsProvisionModalOpen(false)}
-      />
-      <Button
-        variant="outlined"
-        className="action-text"
-        size="small"
-        style={{
-          color: "black",
-          // fontWeight: "bold",
-          border: "1px solid #000",
-        }}
-        endIcon={<StorageIcon />}
-        onClick={() => setIsProvisionModalOpen(true)}
-      >
-        create database
-      </Button>{" "}
+      <ProvisionModal/>{" "}
       <FolderCreateComp /> <FileMoveComp />
       <Divider
         className="action-text"

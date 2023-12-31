@@ -1,13 +1,14 @@
 import Editor from "@monaco-editor/react";
 import PlayCircleFilledWhiteIcon from "@mui/icons-material/PlayCircleFilledWhite";
+import StorageIcon from "@mui/icons-material/Storage";
 import LoadingButton from "@mui/lab/LoadingButton";
 import TabContext from "@mui/lab/TabContext";
 import TabList from "@mui/lab/TabList";
 import TabPanel from "@mui/lab/TabPanel";
 import Alert from "@mui/material/Alert";
 import Box from "@mui/material/Box";
+import Button from "@mui/material/Button";
 import FormControlLabel from "@mui/material/FormControlLabel";
-import Modal from "@mui/material/Modal";
 import Radio from "@mui/material/Radio";
 import RadioGroup from "@mui/material/RadioGroup";
 import Tab from "@mui/material/Tab";
@@ -27,12 +28,18 @@ import {
   Template,
 } from "../../../context/types";
 import {
+  connect_external_database,
+  import_from_external_database,
+} from "../api";
+import { DatabaseCredentialsForm, IExternalCredentials } from "./Import";
+import {
   get_available_database,
   get_available_sample_data_templates,
   provision_database,
 } from "./api";
-import { DatabaseCredentialsForm, IExternalCredentials } from "./Import";
-import { connect_external_database, import_from_external_database } from "../api";
+
+import { Modal } from "@mantine/core";
+import { useDisclosure } from "@mantine/hooks";
 
 export const DBCard: React.FC<{
   database: IDatabase;
@@ -215,23 +222,7 @@ function SampleDataTabs({
   );
 }
 
-const style = {
-  position: "absolute",
-  top: "50%",
-  left: "50%",
-  transform: "translate(-50%, -50%)",
-  width: "58vw",
-  bgcolor: "background.paper",
-  border: "1px solid #efefef",
-  boxShadow: 24,
-  borderRadius: "2px",
-  p: 4,
-};
-
-const ProvisionModal: React.FC<{
-  open: boolean;
-  handleClose: () => void;
-}> = ({ open, handleClose }) => {
+const ProvisionModal = () => {
   const [databaseTemplate, setDatabaseTemplate] =
     React.useState<IDatabaseTemplate>({
       dialect: "mariadb",
@@ -299,6 +290,8 @@ const ProvisionModal: React.FC<{
     });
   };
 
+  const [opened, { open, close }] = useDisclosure(false);
+
   const handleProvisionRequest = useMutation(
     async () => {
       setError(null);
@@ -330,7 +323,7 @@ const ProvisionModal: React.FC<{
     {
       onSuccess: (data) => {
         GrizzyQueryClient.invalidateQueries(["my-databases"]);
-        handleClose();
+        close();
       },
 
       onError: (error: Error) => {
@@ -346,13 +339,13 @@ const ProvisionModal: React.FC<{
   );
 
   return (
-    <Modal
-      open={open}
-      onClose={handleClose}
-      aria-labelledby="modal-modal-title"
-      aria-describedby="modal-modal-description"
-    >
-      <Box sx={style}>
+    <>
+      <Modal
+        opened={opened}
+        fullScreen
+        transitionProps={{ transition: "fade", duration: 200 }}
+        onClose={close}
+      >
         <Container>
           <Alert
             style={{
@@ -360,13 +353,15 @@ const ProvisionModal: React.FC<{
             }}
             severity="warning"
           >
-            Limited to a <b>100MB</b> per database on the <b>free</b> version.
+            Limited to a <b>20MB</b> per database on the <b>free</b> version.
           </Alert>
 
-          <Grid container spacing={2}>
+          <Grid container spacing={2} style={{
+            marginBottom: "20px"
+          }}>
             {databases.map((database, position) => {
               return (
-                <Grid xs={6} sm={3} key={position}>
+                <Grid xs={6} md={4} lg={2} sm={4} key={position}>
                   <DBCard
                     database={database}
                     onSelected={() =>
@@ -571,8 +566,22 @@ const ProvisionModal: React.FC<{
             </LoadingButton>
           </div>
         </Container>
-      </Box>
-    </Modal>
+      </Modal>
+
+      <Button
+        variant="outlined"
+        className="action-text"
+        size="small"
+        style={{
+          color: "black",
+          border: "1px solid #000",
+        }}
+        endIcon={<StorageIcon />}
+        onClick={open}
+      >
+        create database
+      </Button>
+    </>
   );
 };
 
