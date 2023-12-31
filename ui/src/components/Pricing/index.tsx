@@ -61,8 +61,12 @@ export const PricingContainer = () => {
               <Switch
                 checked={monthly}
                 onChange={handleChange}
-               //  checkedIcon={null}
-               //  uncheckedIcon={null}
+                // @ts-ignore
+                checkedIcon={false}
+
+                // @ts-ignore
+                uncheckedIcon={false}
+
                 boxShadow=""
                 activeBoxShadow=""
                 width={45}
