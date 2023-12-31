@@ -92,8 +92,8 @@ export const PricingModal = () => {
                   <Switch
                     checked={monthly}
                     onChange={handleChange}
-                    checkedIcon={null}
-                    uncheckedIcon={null}
+                    // checkedIcon={null}
+                    // uncheckedIcon={null}
                     boxShadow=""
                     activeBoxShadow=""
                     width={45}
