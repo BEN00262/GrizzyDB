@@ -14,12 +14,15 @@ import {
   SignedOut,
 } from "@clerk/clerk-react";
 import { getCurrentBrowserFingerPrint } from "@rajesh896/broprint.js";
+import { Buffer } from 'buffer';
 import { QueryClient, QueryClientProvider } from "react-query";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import AuthTokenComp from "./components/Auth";
 import { AccountsPage } from "./pages/account";
 import DatabaseDashboard from "./pages/account/components/Dashboard";
 import DatabaseView from "./pages/database";
+
+window.Buffer = window.Buffer || Buffer;
 
 // a function to get the user fingerprint
 const FingerPrintUser = () => {

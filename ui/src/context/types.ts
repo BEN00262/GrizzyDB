@@ -4,7 +4,7 @@ export interface ICredential {
     isHidden: boolean
 }
 
-export type DBDialect = 'postgres' | 'mysql' | 'mariadb';
+export type DBDialect = 'postgres' | 'mysql' | 'mariadb' | 'rethinkdb' | 'chromadb';
 
 export type ProductType = 'hosted' | 'bring_your_own';
 

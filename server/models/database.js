@@ -3,7 +3,7 @@ import mongoose from 'mongoose';
 const databaseSchema = new mongoose.Schema({
     dialect: {
         type: String,
-        enum: ['postgres', 'mysql', 'mariadb'],
+        enum: ['postgres', 'mysql', 'mariadb', 'chromadb', 'rethinkdb', 'sqllite'],
         required: true
     },
 
@@ -16,7 +16,7 @@ const databaseSchema = new mongoose.Schema({
     // or a you
     product_type: {
         type: String,
-        enum: ['hosted', 'bring_your_own'],
+        enum: ['hosted', 'bring_your_own', 'connected'],
         default: 'hosted'
     },
 

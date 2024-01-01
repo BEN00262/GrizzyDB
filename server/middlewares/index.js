@@ -16,6 +16,12 @@ export const EnsureIsAuthenticated = async (req, res, next) => {
   }
 };
 
+export const VerifyISSocketIOAuthenticated = async (token) => {
+  const { _id } = await verifyJwtToken(token);
+  const user = await UserModel.findById(_id);
+  return !!user;
+};
+
 export const EnsureIsApiKeyValid = async (req, res, next) => {
   try {
     const apikey = req?.headers?.["apikey"];

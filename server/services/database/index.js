@@ -28,10 +28,16 @@ export class GrizzyDatabaseEngine {
         switch (dialect) {
             case 'mariadb':
                 return process.env.MASTER_MARIADB_URI;
+
             case 'postgres':
                 return process.env.MASTER_POSTGRES_URI;
+
             case 'mysql':
                 return process.env.MASTER_MYSQL_URI;
+
+            case 'rethinkdb':
+                return `${process.env.MASTER_RETHINKDB_URI}:${process.env.MASTER_RETHINKDB_PORT}`;
+                
             default:
                 throw new GrizzyDBException("Unsupported dialect");
         }
@@ -92,20 +98,52 @@ export class GrizzyDatabaseEngine {
 
         const template = templates[dialect.toLowerCase()];
 
-        if (template) {
-            const sequelize = GrizzyDatabaseEngine.get_database_factory(
-                dialect
-            );
-    
-            for (const statement of (template.setup ?? [])) {
-                await sequelize.query(handlebars.compile(statement)({
-                    database_name,
-                    database_user,
-                    random_password
-                }));
-            }
+        // this only applies to the relationalDB templates
 
-            await sequelize.close();
+        if (template) {
+
+            switch (dialect) {
+                case 'postgres':
+                case 'mysql':
+                case 'mariadb':
+                    {
+                        const sequelize = GrizzyDatabaseEngine.get_database_factory(
+                            dialect
+                        );
+                
+                        for (const statement of (template.setup ?? [])) {
+                            await sequelize.query(handlebars.compile(statement)({
+                                database_name,
+                                database_user,
+                                random_password
+                            }));
+                        }
+            
+                        await sequelize.close();
+
+                        break;
+                    }
+                case 'rethinkdb':
+                    {
+                        // ensure the setup is a function first
+                        const setup_function = template?.setup;
+
+                        if (typeof setup_function !== 'function') {
+                            throw new GrizzyDBException("Invalid setup function for RethinkDB dialect")
+                        }
+
+                        await setup_function(
+                            database_name,
+                            database_user,
+                            random_password
+                        );
+
+                        break;
+                    }
+
+                default:
+                    throw new GrizzyDBException(`Support for ${dialect} has not been worked on yet, look out for changes in the future`)
+            }
         }
 
         return {

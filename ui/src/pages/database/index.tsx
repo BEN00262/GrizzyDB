@@ -5,11 +5,14 @@ import { useState } from "react";
 import { useMutation, useQuery } from "react-query";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { IDatabaseDisplay } from "../../context/types";
-import { BringYourOwnDBUI, ProvisionedDB } from "../landing";
+import { BringYourOwnDBUI } from "../landing";
 import SQLEditorComp from "../landing/components/PopupEditor";
 import { delete_database, get_database, update_database_metadata } from "./api";
 import ImportComponent from "../landing/components/Import";
 import ExportComponent from "../landing/components/Export";
+import RelationalDB from "../../components/Dashboard/RelationalDB";
+import ChromaDB from "../../components/Dashboard/ChromaDB";
+import RethinkDB from "../../components/Dashboard/RethinkDB";
 
 function BringYourOwnDB({ database }: { database: IDatabaseDisplay }) {
   const params = useParams();
@@ -108,6 +111,17 @@ function BringYourOwnDB({ database }: { database: IDatabaseDisplay }) {
   );
 }
 
+export function DBDisplayFactory({ database }: { database: IDatabaseDisplay }) {
+  switch (database.dialect) {
+    case "chromadb":
+      return <ChromaDB {...database} />;
+    case "rethinkdb":
+      return <RethinkDB {...database} />;
+  }
+
+  return <RelationalDB {...database} />;
+}
+
 function HostedDB({ database }: { database: IDatabaseDisplay }) {
   const params = useParams();
   const [title, setTitle] = useState(database.name ?? "");
@@ -169,10 +183,20 @@ function HostedDB({ database }: { database: IDatabaseDisplay }) {
           style={{
             display: "flex",
             gap: "10px",
-            alignItems: "center"
+            alignItems: "center",
           }}
         >
-          <SQLEditorComp />
+          {["postgres", "mariadb", "mysql"].includes(database.dialect) ? (
+            <>
+              <SQLEditorComp />
+              <div
+                style={{
+                  height: "20px",
+                  border: "1px solid #efefef",
+                }}
+              />
+            </>
+          ) : null}
           {/* <div style={{
             height: "20px",
             border: "1px solid #efefef"
@@ -183,10 +207,6 @@ function HostedDB({ database }: { database: IDatabaseDisplay }) {
             border: "1px solid #efefef"
           }}/>
           <ExportComponent/> */}
-          <div style={{
-            height: "20px",
-            border: "1px solid #efefef"
-          }}/>
           <LoadingButton
             variant="text"
             loading={handleDeleteDB.isLoading}
@@ -206,7 +226,7 @@ function HostedDB({ database }: { database: IDatabaseDisplay }) {
           marginTop: "20px",
         }}
       >
-        <ProvisionedDB {...database} />
+        <DBDisplayFactory database={database} />
       </div>
     </>
   );

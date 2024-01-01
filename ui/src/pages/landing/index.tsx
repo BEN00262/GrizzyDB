@@ -3,7 +3,6 @@ import TabList from "@mui/lab/TabList";
 import TabPanel from "@mui/lab/TabPanel";
 import Box from "@mui/material/Box";
 import Tab from "@mui/material/Tab";
-import Tooltip from "@mui/material/Tooltip";
 import * as React from "react";
 import { Container } from "react-bootstrap";
 import { useQuery } from "react-query";
@@ -24,14 +23,12 @@ import JTabPanel from "@mui/joy/TabPanel";
 import JTabs from "@mui/joy/Tabs";
 import copy from "copy-to-clipboard";
 import { useNavigate } from "react-router";
+import { PricingContainer } from "../../components/Pricing";
+import { DBDisplayFactory } from "../../pages/database";
 import { FooterSocial } from "./components/Footer";
 import Markdown from "./components/Markdown";
 import Snapshots from "./components/Snapshots";
-import TimestepSnapshotComp from "./components/TimestepSnapshot";
 import { FeaturesGrid } from "./components/WhatWeOffer";
-import InsightsTab from "./components/Insights";
-import { SimpleGrid } from "@mantine/core";
-import {PricingContainer} from "../../components/Pricing";
 
 const Credential: React.FC<ICredential> = ({ credentialKey, value }) => {
   return (
@@ -52,7 +49,7 @@ const Credential: React.FC<ICredential> = ({ credentialKey, value }) => {
   );
 };
 
-function Credentials({ credentials }: { credentials: ICredential[] }) {
+export function Credentials({ credentials }: { credentials: ICredential[] }) {
   const credentials_for_copy = React.useMemo(() => {
     return credentials
       .map(({ credentialKey, value }) => `${credentialKey} = ${value}`)
@@ -180,103 +177,6 @@ export function BringYourOwnDBUI({ _id }: IDatabaseDisplay) {
   );
 }
 
-export function ProvisionedDB({ credentials, _id }: IDatabaseDisplay) {
-  return (
-    <JTabs defaultValue={0} size="sm">
-      <JTabList
-        className="action-text"
-        variant="plain"
-        sx={{
-          "--List-padding": "0px",
-          "--List-radius": "0px",
-          "--ListItem-minHeight": "48px",
-          [`& .${tabClasses.root}`]: {
-            boxShadow: "none",
-            fontWeight: "md",
-            [`&.${tabClasses.selected}::before`]: {
-              content: '""',
-              display: "block",
-              position: "absolute",
-              left: "var(--ListItem-paddingLeft)", // change to `0` to stretch to the edge.
-              right: "var(--ListItem-paddingRight)", // change to `0` to stretch to the edge.
-              bottom: 0,
-              height: 3,
-              bgcolor: "primary.400",
-            },
-          },
-          width: "50%",
-          margin: "auto",
-          marginBottom: "20px",
-        }}
-      >
-        <JTab>ERD</JTab>
-        <JTab>Snapshots</JTab>
-        <JTab>Insights</JTab>
-        <Tooltip title="Coming soon" arrow>
-          <JTab disabled>Client</JTab>
-        </Tooltip>
-        <Tooltip title="Coming soon" arrow>
-          <JTab disabled>Analytics</JTab>
-        </Tooltip>
-        <JTab>Credentials</JTab>
-      </JTabList>
-
-      <JTabPanel value={0} sx={{ height: "75vh" }}>
-        <Snapshots />
-      </JTabPanel>
-
-      <JTabPanel value={1} sx={{ height: "75vh" }}>
-        <TimestepSnapshotComp />
-      </JTabPanel>
-
-      <JTabPanel value={2} sx={{ height: "75vh" }}>
-        <InsightsTab />
-      </JTabPanel>
-
-      <JTabPanel
-        value={3}
-        sx={{
-          height: "75vh",
-          border: "1px solid #efefef",
-          borderRadius: "5px",
-        }}
-      >
-        {/* <DatabaseScreen
-          config={{
-            database: "",
-            user: "",
-            password: "",
-            host: "",
-            port: "",
-            type: "mysql",
-          }}
-        /> */}
-      </JTabPanel>
-
-      <JTabPanel value={4} sx={{ height: "75vh" }}>
-        {/* <BIComponent /> */}
-      </JTabPanel>
-
-      <JTabPanel value={5} sx={{ height: "75vh" }}>
-        <div
-          style={{
-            height: "400px",
-            display: "flex",
-            flexDirection: "column",
-            justifyContent: "center",
-            alignItems: "center",
-            boxSizing: "border-box",
-            padding: "10px",
-            gap: "4px",
-          }}
-        >
-          <Credentials credentials={credentials} />
-        </div>
-      </JTabPanel>
-    </JTabs>
-  );
-}
-
 export function LabTabs() {
   const dispatch = useGrizzyDBDispatch();
   const [value, setValue] = React.useState("0");
@@ -319,7 +219,7 @@ export function LabTabs() {
         {databases.map((database, position) => {
           return (
             <TabPanel value={position.toString()} key={position}>
-              <ProvisionedDB {...database} />
+              <DBDisplayFactory database={database} />
             </TabPanel>
           );
         })}
@@ -398,7 +298,7 @@ const LandingPage = () => {
                 borderRadius: "2px",
                 objectFit: "contain",
                 border: "1px solid #d3d3d3",
-                transform: 'rotate(10deg)'
+                transform: "rotate(10deg)",
               }}
             />
           </div>
@@ -429,7 +329,7 @@ const LandingPage = () => {
                 borderRadius: "2px",
                 objectFit: "contain",
                 border: "1px solid #d3d3d3",
-                transform: 'rotate(10deg)'
+                transform: "rotate(10deg)",
               }}
             />
           </div>
@@ -466,7 +366,7 @@ const LandingPage = () => {
                 borderRadius: "2px",
                 objectFit: "contain",
                 border: "1px solid #d3d3d3",
-                transform: 'rotate(10deg)'
+                transform: "rotate(10deg)",
               }}
             />
           </div>
@@ -482,18 +382,20 @@ const LandingPage = () => {
                 borderRadius: "2px",
                 objectFit: "contain",
                 border: "1px solid #d3d3d3",
-                transform: 'rotate(-10deg)'
+                transform: "rotate(-10deg)",
               }}
             />
           </div>
         </div>
       </>
 
-      <Container style={{
-        display: "flex",
-        justifyContent: "center"
-      }}>
-        <PricingContainer/>
+      <Container
+        style={{
+          display: "flex",
+          justifyContent: "center",
+        }}
+      >
+        <PricingContainer />
       </Container>
 
       <FooterSocial />

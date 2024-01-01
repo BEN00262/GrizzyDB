@@ -1,3 +1,5 @@
+import RethinkDB from 'rethinkdb-ts';
+
 export const templates = {
   postgres: {
     setup: [
@@ -109,4 +111,56 @@ export const templates = {
 
     triggers: [],
   },
+
+  // init strateguy for the rethinkdb module
+  rethinkdb: {
+    // gets the connection and then does the thing
+    setup: async function(database, username, password) {
+      // get the database name, username and the password suggested
+      const connection = await RethinkDB.connect({
+        server: {
+          host: process.env.MASTER_RETHINKDB_URI,
+          port: +process.env.MASTER_RETHINKDB_PORT,
+        }
+      }, {
+        user: process.env.MASTER_RETHINKDB_USERNAME,
+        password: process.env.MASTER_RETHINKDB_PASSWORD
+      });
+
+      // create the db, then create the user, only give the user access to this one database
+      // await connection.dbCreate(database);
+      await connection.run(
+        RethinkDB.r.dbCreate(database)
+      );
+
+      // create the user
+      await connection.run(
+        RethinkDB.r.db('rethinkdb').table('users').insert({
+          id: username,
+          password: { password, iterations: 1024  }
+        })
+      );
+
+      // give the user access to the created database only
+      await connection.run(
+        RethinkDB.r.db(database).grant(username, { read: true, write: true, config: false })
+      );
+
+      await connection.run(
+        RethinkDB.r.grant(username, { connect: true })
+      );
+
+      // required step
+      await connection.run(RethinkDB.r.db(database).tableCreate("db_config"));
+      await connection.run(RethinkDB.r.db(database).tableCreate("table_status"));
+
+      // free the connection after we are done
+      await connection.close();
+    }
+  },
+
+  // chromadb
+  chromadb: {
+
+  }
 };
