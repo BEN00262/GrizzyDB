@@ -31,8 +31,6 @@ async function rethinkdb_socketio_handler(socketio_client, eventName, data, data
         ).toString(CryptoJS.enc.Utf8)
     );
 
-    console.log({ credentials })
-
     // create a connection
     const connection = await RethinkDB.connect({
         server: {

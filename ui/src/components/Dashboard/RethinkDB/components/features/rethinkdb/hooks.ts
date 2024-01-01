@@ -33,10 +33,13 @@ export const useLatestChange = <T>(changeQuery: RFeed, database_reference: strin
     return () => {
       if (unsubRef.current) {
         unsubRef.current();
+        //@ts-ignore
         unsubRef.current = null;
       }
     };
   }, [changeQuery]);
+
+  //@ts-ignore
   return [response, status];
 };
 
@@ -81,6 +84,8 @@ export const useRequest = <T>(
       for (const index in unsubRef.current) {
         if (unsubRef.current[index]) {
           unsubRef.current[index]();
+
+          //@ts-ignore
           unsubRef.current[index] = null;
         }
       }
@@ -101,6 +106,7 @@ export const useRequest = <T>(
       });
   }, [query, ...cResponses]);
 
+  //@ts-ignore
   return [response, status];
 };
 
@@ -113,6 +119,8 @@ export function useChangeList<T = unknown>(query?: RQuery, database_reference = 
       return () => {
         if (unsubRef.current) {
           unsubRef.current();
+
+          //@ts-ignore
           unsubRef.current = null;
         }
       };
@@ -129,6 +137,8 @@ export function useChangeList<T = unknown>(query?: RQuery, database_reference = 
     return () => {
       if (unsubRef.current) {
         unsubRef.current();
+
+        //@ts-ignore
         unsubRef.current = null;
       }
     };

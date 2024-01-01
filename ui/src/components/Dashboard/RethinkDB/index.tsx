@@ -4,12 +4,16 @@ import JTabPanel from "@mui/joy/TabPanel";
 import JTabs from "@mui/joy/Tabs";
 import { IDatabaseDisplay } from "../../../context/types";
 import { Credentials } from "../../../pages/landing";
-import { DashboardPage } from "./components/features/dashboard/dashboard-page";
-import { TablesPage } from "./components/features/tables/tables-page";
 import { DataExplorerPage } from "./components/features/data-explorer/data-explorer-page";
+import { TablesPage } from "./components/features/tables/tables-page";
+import { useMemo } from "react";
 
 // this is the default to any db thats relational
 function RethinkDB({ credentials, _id }: IDatabaseDisplay) {
+    const database_name = useMemo(() => {
+        return credentials.find(({ credentialKey }) => credentialKey === 'DB_NAME')?.value ?? ""
+    }, [_id]);
+
   return (
     <JTabs defaultValue={0} size="sm">
       <JTabList
@@ -38,22 +42,17 @@ function RethinkDB({ credentials, _id }: IDatabaseDisplay) {
           marginBottom: "20px",
         }}
       >
-        {/* <JTab>Dashboard</JTab> */}
         <JTab>Tables</JTab>
         <JTab>Data Explorer</JTab>
         <JTab>Credentials</JTab>
       </JTabList>
 
-      {/* <JTabPanel value={0} sx={{ height: "75vh" }}>
-        <DashboardPage/>
-      </JTabPanel> */}
-
       <JTabPanel value={0} sx={{ height: "75vh" }}>
-        <TablesPage/>
+        <TablesPage database_name={database_name} />
       </JTabPanel>
 
       <JTabPanel value={1} sx={{ height: "75vh" }}>
-        <DataExplorerPage/>
+        <DataExplorerPage />
       </JTabPanel>
 
       <JTabPanel value={2} sx={{ height: "75vh" }}>

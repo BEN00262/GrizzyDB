@@ -3,10 +3,10 @@ import { r } from 'rethinkdb-ts/lib/query-builder/r';
 
 import {admin} from '../rethinkdb';
 
-export const tableListQuery = admin.db_config.map((db) => ({
+export const tableListQuery = (database_name: string) => admin(database_name).db_config.filter((i: RDatum) => i('name').eq(database_name)).map((db) => ({
   name: db('name'),
   id: db('id'),
-  tables: admin.table_status
+  tables: admin(database_name).table_status
     .orderBy((table) => table('name'))
     .filter((i: RDatum) => i('db').eq(db('name')))
     .merge((table) => ({
@@ -30,9 +30,10 @@ export const tableListQuery = admin.db_config.map((db) => ({
 
 export const guaranteedQuery = (tableId: string) =>
   r.do(
-    admin.server_config.coerceTo('ARRAY'),
-    admin.table_status.get(tableId),
-    admin.table_config.get(tableId),
+    admin('').server_config.coerceTo('ARRAY'),
+    admin('').table_status.get(tableId),
+    admin('').table_config.get(tableId),
+    //@ts-ignore
     (
       server_config: RDatum,
       table_status: RSingleSelection,

@@ -17,6 +17,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import { requestQuery } from '../rethinkdb';
 
 import { ModalCard } from './modal-style';
+import { useParams } from 'react-router';
 
 const notValidText =
   "This name doesn't match the name of the database you're trying to delete.";
@@ -32,6 +33,8 @@ export const RemoveTableModal = ({
   const [hasEntered, setHasEntered] = React.useState<boolean>(false);
   const [value, setValue] = React.useState<string>('');
   const [error, setError] = React.useState<boolean>(true);
+
+  const { id: database_reference } = useParams();
 
   const handleOpen = () => {
     setOpen(true);
@@ -51,7 +54,7 @@ export const RemoveTableModal = ({
   }, []);
 
   const onTableDelete = React.useCallback(async () => {
-    await requestQuery(r.db(dbName).tableDrop(tableName));
+    await requestQuery(r.db(dbName).tableDrop(tableName), database_reference ?? "");
     handleClose();
   }, [dbName]);
 

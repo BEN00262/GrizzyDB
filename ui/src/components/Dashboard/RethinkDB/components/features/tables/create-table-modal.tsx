@@ -21,6 +21,7 @@ import {admin, requestQuery} from '../rethinkdb';
 
 import { useTableEntries } from './db-table-list';
 import { ModalCard } from './modal-style';
+import { useParams } from 'react-router';
 
 export type Durability = 'hard' | 'soft';
 
@@ -30,7 +31,7 @@ export const getCreateQuery = (
   primaryKey = 'id',
   durability: Durability = 'hard',
 ) =>
-  admin.server_status.coerceTo('ARRAY')
+  admin(dbName).server_status.coerceTo('ARRAY')
     .do((servers) =>
       r.branch(
         servers.isEmpty(),
@@ -39,7 +40,7 @@ export const getCreateQuery = (
           .sample(1)
           .nth(0)('name')
           .do((server) =>
-            admin.table_config
+            admin(dbName).table_config
               .insert(
                 {
                   db: dbName,
@@ -77,7 +78,9 @@ export const CreateTableModal = ({ dbName }: { dbName: string }) => {
   const [writeResult, setWriteResult] = React.useState<WriteResult | null>(
     null,
   );
-  const dbEntries = useTableEntries();
+  const dbEntries = useTableEntries(dbName);
+
+  const { id: database_reference } = useParams();
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     let value;
@@ -130,7 +133,7 @@ export const CreateTableModal = ({ dbName }: { dbName: string }) => {
   };
 
   const onTableCreate = React.useCallback(async () => {
-    const data: WriteResult = await requestQuery(query);
+    const data: WriteResult = await requestQuery(query, database_reference ?? "");
     if (data?.errors) {
       setWriteResult(data);
       return;
@@ -151,7 +154,7 @@ export const CreateTableModal = ({ dbName }: { dbName: string }) => {
       return;
     }
     // Check if it's a duplicate
-    for (const database of dbEntries) {
+    for (const database of (dbEntries ?? [])) {
       if (database.tables.map((t) => t.name).includes(formState.tableName)) {
         setError("it's a duplicate");
         return;
@@ -162,7 +165,7 @@ export const CreateTableModal = ({ dbName }: { dbName: string }) => {
 
   return (
     <>
-      <Button onClick={handleOpen} variant="outlined">
+      <Button onClick={handleOpen} variant="outlined" size="small">
         Create Table
       </Button>
       <Modal

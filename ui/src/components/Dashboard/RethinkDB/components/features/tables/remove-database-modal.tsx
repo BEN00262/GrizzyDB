@@ -14,6 +14,7 @@ import {
 import { requestQuery } from '../rethinkdb';
 
 import { ModalCard } from './modal-style';
+import { useParams } from 'react-router';
 
 const notValidText =
   "This name doesn't match the name of the database you're trying to delete.";
@@ -23,6 +24,8 @@ export const RemoveDatabaseModal = ({ dbName }: { dbName: string }) => {
   const [hasEntered, setHasEntered] = React.useState<boolean>(false);
   const [value, setValue] = React.useState<string>('');
   const [error, setError] = React.useState<boolean>(true);
+
+  const { id: database_reference } = useParams();
 
   const handleOpen = () => {
     setOpen(true);
@@ -42,7 +45,7 @@ export const RemoveDatabaseModal = ({ dbName }: { dbName: string }) => {
   }, []);
 
   const onDatabaseRemove = React.useCallback(async () => {
-    await requestQuery(r.dbDrop(dbName));
+    await requestQuery(r.dbDrop(dbName), database_reference ?? "");
     handleClose();
   }, [dbName]);
 

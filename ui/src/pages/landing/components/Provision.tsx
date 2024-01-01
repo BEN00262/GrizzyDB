@@ -290,6 +290,12 @@ const ProvisionModal = () => {
     });
   };
 
+  React.useEffect(() => {
+    if (['chromadb', 'rethinkdb'].includes(databaseTemplate.dialect)) {
+      setDatabaseTemplate(old => ({ ...old, selected_template: 'none' }))
+    }
+  }, [databaseTemplate.dialect])
+
   const [opened, { open, close }] = useDisclosure(false);
 
   const handleProvisionRequest = useMutation(
@@ -420,6 +426,7 @@ const ProvisionModal = () => {
                 <FormControlLabel
                   className="select-radio"
                   value="external"
+                  disabled={['chromadb', 'rethinkdb'].includes(databaseTemplate.dialect)}
                   control={
                     <Radio
                       checked={
@@ -437,6 +444,7 @@ const ProvisionModal = () => {
                 <FormControlLabel
                   className="select-radio"
                   value="external-import"
+                  disabled={['chromadb', 'rethinkdb'].includes(databaseTemplate.dialect)}
                   control={
                     <Radio
                       checked={
@@ -454,6 +462,7 @@ const ProvisionModal = () => {
                 <FormControlLabel
                   className="select-radio"
                   value="sample"
+                  disabled={['chromadb', 'rethinkdb'].includes(databaseTemplate.dialect)}
                   control={
                     <Radio
                       checked={databaseTemplate.selected_template === "sample"}
@@ -468,6 +477,7 @@ const ProvisionModal = () => {
                 <FormControlLabel
                   className="select-radio"
                   value="custom"
+                  disabled={['chromadb', 'rethinkdb'].includes(databaseTemplate.dialect)}
                   control={
                     <Radio
                       checked={databaseTemplate.selected_template === "custom"}

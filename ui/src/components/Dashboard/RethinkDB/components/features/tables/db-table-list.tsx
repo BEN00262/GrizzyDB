@@ -8,13 +8,13 @@ import { tableListQuery } from "./queries";
 import { TableList } from "./table-list";
 import { EnrichedDatabaseEntry } from "./types";
 
-const dbFeed = admin.db_config.changes();
-const tableFeed = admin.table_status.changes();
+export function useTableEntries(database_name: string): null | EnrichedDatabaseEntry[] {
+  const dbFeed = admin(database_name).db_config.changes();
+  const tableFeed = admin(database_name).table_status.changes();
 
-const cList = [dbFeed, tableFeed];
+  const cList = [dbFeed, tableFeed];
 
-export function useTableEntries(): null | EnrichedDatabaseEntry[] {
-  const [state] = useRequest<EnrichedDatabaseEntry[]>(tableListQuery, cList);
+  const [state] = useRequest<EnrichedDatabaseEntry[]>(tableListQuery(database_name), cList);
 
   return state;
 }
@@ -23,7 +23,7 @@ const NoTablePaper = styled(Paper)(({ theme }) => ({
   ...theme.typography.body2,
   textAlign: "center",
   color: theme.palette.text.secondary,
-  backgroundColor: theme.palette.grey["200"],
+  backgroundColor: "#efefef",
   padding: theme.spacing(1),
 }));
 
@@ -33,8 +33,6 @@ export const FullTableList = React.memo(
     if (!Array.isArray(entries)) {
       return <div>loading</div>;
     }
-
-    console.log({ entries })
 
     return (
       <>
@@ -57,7 +55,7 @@ export const FullTableList = React.memo(
             {entry.tables.length > 0 ? (
               <TableList tables={entry.tables} />
             ) : (
-              <NoTablePaper elevation={3}>
+              <NoTablePaper elevation={0}>
                 There are no tables in this database
               </NoTablePaper>
             )}

@@ -33,7 +33,7 @@ export type TableGuaranteedData = {
 
 export const TablePage = () => {
   const params = useParams<{ id: string }>();
-  const [table] = useRequest<TableGuaranteedData>(guaranteedQuery(params.id));
+  const [table] = useRequest<TableGuaranteedData>(guaranteedQuery(params.id ?? ""));
 
   if (!table) {
     return <div>loading</div>;

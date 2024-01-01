@@ -30,6 +30,7 @@ import 'codemirror/theme/neo.css';
 import 'codemirror/addon/hint/javascript-hint';
 import 'codemirror/addon/hint/show-hint';
 import 'codemirror/addon/hint/show-hint.css';
+import { useParams } from 'react-router';
 
 function evalInContext(js: string, context: unknown) {
   return function () {
@@ -73,13 +74,17 @@ function isChangesQuery(query: RQuery): boolean {
 
 export function DataExplorerPage() {
   const [value, setValue] = useState<string>('');
-  const [lastRunTime, setLastRunTime] = useState<Date>(null);
-  const [query, setQuery] = useState<RQuery>(null);
+  const [lastRunTime, setLastRunTime] = useState<Date | null>(null);
+  const [query, setQuery] = useState<RQuery | null>(null);
   const [result, setResult] = useState<string>();
   const [num, setNum] = React.useState(0);
   const theme = useTheme();
   const isChangesQ = !!query && isChangesQuery(query);
-  const changesResult = useChangeList(isChangesQ ? query : null);
+
+  const { id: database_reference } = useParams();
+
+  // @ts-ignore
+  const changesResult = useChangeList(isChangesQ ? query : null, database_reference);
 
   const handleChange = (event: React.ChangeEvent, newValue: number) => {
     setNum(newValue);
@@ -89,24 +94,25 @@ export function DataExplorerPage() {
     try {
       setLastRunTime(new Date());
       const query = evalInContext(`const r = this.r;${value}`, { r });
+
       if (!query) {
         setResult('You have to input anything');
         return;
       }
       setQuery(() => query);
-    } catch (error) {
-      setResult(`TypeError: ${error.message}`);
+    } catch (error: any) {
+      setResult(`TypeError: ${(error as Error).message}`);
     }
   }
   useEffect(() => {
     if (query && !isChangesQ) {
       try {
-        requestQuery(query).then(
+        requestQuery(query, database_reference ?? "").then(
           (data) => setResult(JSON.stringify(data, null, 2)),
           setResult,
         );
-      } catch (error) {
-        setResult(`TypeError: ${error.message}`);
+      } catch (error: any) {
+        setResult(`TypeError: ${(error as Error).message}`);
       }
     }
   }, [query]);
@@ -117,8 +123,8 @@ export function DataExplorerPage() {
 
   function handleKeyPress(instance: Editor, event: KeyboardEvent): boolean {
     // If the user hit enter and (Ctrl or Shift)
-    console.log(event);
-    debugger;
+    // console.log(event);
+    // debugger;
     if (
       event.key === '13' &&
       (event.shiftKey || event.ctrlKey || event.metaKey)
@@ -184,6 +190,7 @@ export function DataExplorerPage() {
         <AppBar position="static" elevation={0} color="default">
           <Tabs
             value={num}
+            //@ts-ignore
             onChange={handleChange}
             indicatorColor="primary"
             textColor="primary"

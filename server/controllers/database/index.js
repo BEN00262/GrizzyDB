@@ -791,19 +791,24 @@ export class DatabaseController {
           break;
       }
 
-      const snapshot = await SnapshotModel.create({
-        status: 'scheduled',
-        checksum: md5(`${Date.now}`), // this is a placeholder checksum
-        database: database._id,
-        owner: req.user._id,
-        snapshot: LzString.compressToBase64("{}")
-      });
 
-      await sendToSnapshotGeneratorQueue({ 
-        database_id: database._id,
-        snapshot_id: snapshot._id,
-        task: 'snapshot'
-      });
+      // check if its an empty db -- if so dont initiate this -- actually this only applies to relational dbs for now
+
+      if (['postgres', 'mariadb', 'mysql', 'sqllite'].includes(database.dialect)) {
+        const snapshot = await SnapshotModel.create({
+          status: 'scheduled',
+          checksum: md5(`${Date.now}`), // this is a placeholder checksum
+          database: database._id,
+          owner: req.user._id,
+          snapshot: LzString.compressToBase64("{}")
+        });
+  
+        await sendToSnapshotGeneratorQueue({ 
+          database_id: database._id,
+          snapshot_id: snapshot._id,
+          task: 'snapshot'
+        });
+      }
 
       return massage_response(
         {

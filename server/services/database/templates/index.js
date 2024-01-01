@@ -143,7 +143,23 @@ export const templates = {
 
       // give the user access to the created database only
       await connection.run(
-        RethinkDB.r.db(database).grant(username, { read: true, write: true, config: false })
+        RethinkDB.r.db(database).grant(username, { read: true, write: true, config: true })
+      );
+
+      await connection.run(
+        RethinkDB.r.db('rethinkdb').table('db_config').grant(username, { read: true })
+      );
+
+      await connection.run(
+        RethinkDB.r.db('rethinkdb').table('table_status').grant(username, { read: true })
+      );
+
+      await connection.run(
+        RethinkDB.r.db('rethinkdb').table('table_config').grant(username, { read: true, write: true /* find a way to restrict this */ })
+      );
+
+      await connection.run(
+        RethinkDB.r.db('rethinkdb').table('server_status').grant(username, { read: true })
       );
 
       await connection.run(
@@ -151,8 +167,8 @@ export const templates = {
       );
 
       // required step
-      await connection.run(RethinkDB.r.db(database).tableCreate("db_config"));
-      await connection.run(RethinkDB.r.db(database).tableCreate("table_status"));
+      // await connection.run(RethinkDB.r.db(database).tableCreate("db_config"));
+      // await connection.run(RethinkDB.r.db(database).tableCreate("table_status"));
 
       // free the connection after we are done
       await connection.close();

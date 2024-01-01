@@ -30,6 +30,7 @@ import 'codemirror/theme/neo.css';
 import 'codemirror/addon/hint/javascript-hint';
 import 'codemirror/addon/hint/show-hint';
 import 'codemirror/addon/hint/show-hint.css';
+import { useParams } from 'react-router';
 
 function evalInContext(js: string, context: unknown) {
   return function () {
@@ -73,12 +74,16 @@ function isChangesQuery(query: RQuery): boolean {
 
 export function TableChartPage() {
   const [value, setValue] = useState<string>('');
-  const [lastRunTime, setLastRunTime] = useState<Date>(null);
-  const [query, setQuery] = useState<RQuery>(null);
+  const [lastRunTime, setLastRunTime] = useState<Date | null>(null);
+  const [query, setQuery] = useState<RQuery | null>(null);
   const [result, setResult] = useState<string>();
   const [num, setNum] = React.useState(0);
   const theme = useTheme();
   const isChangesQ = !!query && isChangesQuery(query);
+
+  const { id: database_reference } = useParams();
+
+  //@ts-ignore
   const changesResult = useChangeList(isChangesQ ? query : null);
 
   const handleChange = (event: React.ChangeEvent, newValue: number) => {
@@ -95,17 +100,19 @@ export function TableChartPage() {
       }
       setQuery(() => query);
     } catch (error) {
+      //@ts-ignore
       setResult(`TypeError: ${error.message}`);
     }
   }
   useEffect(() => {
     if (query && !isChangesQ) {
       try {
-        requestQuery(query).then(
+        requestQuery(query, database_reference ?? "").then(
           (data) => setResult(JSON.stringify(data, null, 2)),
           setResult,
         );
       } catch (error) {
+        //@ts-ignore
         setResult(`TypeError: ${error.message}`);
       }
     }
@@ -117,8 +124,8 @@ export function TableChartPage() {
 
   function handleKeyPress(instance: Editor, event: KeyboardEvent): boolean {
     // If the user hit enter and (Ctrl or Shift)
-    console.log(event);
-    debugger;
+    // console.log(event);
+    // debugger;
     if (
       event.key === '13' &&
       (event.shiftKey || event.ctrlKey || event.metaKey)
@@ -184,6 +191,7 @@ export function TableChartPage() {
         <AppBar position="static" elevation={0} color="default">
           <Tabs
             value={num}
+            //@ts-ignore
             onChange={handleChange}
             indicatorColor="primary"
             textColor="primary"
