@@ -10,11 +10,13 @@ import moment from 'moment';
 import { Sequelize } from 'sequelize';
 import CryptoJS from "crypto-js";
 import { DatabaseModel } from "../models/index.js";
+import { mark_databases_for_snapshot_regeneration } from '../cdc/mariadb_mysql/index.js';
 
 const agenda = new Agenda({ 
     db: { address: process.env.MONGO_URI } 
 });
 
+// check if its a db we own -- thats simple
 agenda.define('delete expired databases', async job => {
 	// get the database metadata
     const databases = await DatabaseModel.find({
@@ -47,7 +49,13 @@ agenda.define('delete expired databases', async job => {
     await sequelize.close();
 });
 
+agenda.define('snapshots', async job => {
+	// get the database metadata
+    await mark_databases_for_snapshot_regeneration();
+});
+
 ;(async function () {
 	await agenda.start();
-	await agenda.every('8 hours', 'delete expired databases');
+	// await agenda.every('8 hours', 'delete expired databases');
+    await agenda.every('1 hours', 'snapshots');
 })();

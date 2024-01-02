@@ -37,7 +37,7 @@ export class GrizzyDatabaseEngine {
 
             case 'rethinkdb':
                 return `${process.env.MASTER_RETHINKDB_URI}:${process.env.MASTER_RETHINKDB_PORT}`;
-                
+
             default:
                 throw new GrizzyDBException("Unsupported dialect");
         }
@@ -218,6 +218,54 @@ export class GrizzyDatabaseEngine {
         ]
     }
 
+    static async database_cdc_changes(dialect, credentials = {}) {
+        // this only works for relational dbs
+        switch (dialect) {
+            case 'mariadb':
+            case 'mysql':
+                {
+                    // get the connection fetch all the tables then compute the total checksum
+                    const sequelize = new Sequelize(credentials.DB_NAME, credentials.DB_USER, credentials.DB_PASSWORD, {
+                        host: credentials?.DB_HOST ? credentials.DB_HOST : GrizzyDatabaseEngine.get_rds_uri(dialect),
+                        logging: false,
+                        dialect: 'mysql' /* weird kink fix it later */, /* one of 'mysql' | 'postgres' | 'sqlite' | 'mariadb' | 'mssql' | 'db2' | 'snowflake' | 'oracle' */
+                    });
+
+                    // get all the tables
+                    const tables_with_last_update_time_epochs_for_cdc = await sequelize.query(`SELECT TABLE_NAME, unix_timestamp(update_time) as last_update_time
+                    FROM information_schema.tables
+                    WHERE TABLE_SCHEMA = database();`);
+
+                    // get the number and save it to the db for later checks
+                    return tables_with_last_update_time_epochs_for_cdc?.[0]?.reduce((acc, x) => {
+                        return acc + (x?.last_update_time ?? 0);
+                    }, 0);
+                }
+
+            case 'postgres':
+                {
+                    // get the connection fetch all the tables then compute the total checksum
+                    const sequelize = new Sequelize(credentials.DB_NAME, credentials.DB_USER, credentials.DB_PASSWORD, {
+                        host: credentials?.DB_HOST ? credentials.DB_HOST : GrizzyDatabaseEngine.get_rds_uri(dialect),
+                        logging: false,
+                        dialect /* weird kink fix it later */, /* one of 'mysql' | 'postgres' | 'sqlite' | 'mariadb' | 'mssql' | 'db2' | 'snowflake' | 'oracle' */
+                    });
+
+                    // get all the tables
+                    const tables_with_last_update_time_epochs_for_cdc = await sequelize.query(`SELECT table_name, 
+                    EXTRACT(epoch FROM pg_stat_get_last_autovacuum_time(c.oid) ) AS last_update_time
+             FROM information_schema.tables t
+             JOIN pg_class c ON t.table_name = c.relname
+             WHERE table_schema = current_schema();`);
+
+                    // get the number and save it to the db for later checks
+                    return tables_with_last_update_time_epochs_for_cdc?.[0]?.reduce((acc, x) => {
+                        return acc + (x?.last_update_time ?? 0);
+                    }, 0);
+                }
+        }
+    }
+
     /**
      * 
      * @param {string} dialect 
@@ -396,8 +444,6 @@ export class GrizzyDatabaseEngine {
                     random_password: credentials.DB_PASSWORD
                 }));
             }
-
-            console.log({ dialect , yeah: 1 })
 
             // run snapshots
             switch (dialect) {

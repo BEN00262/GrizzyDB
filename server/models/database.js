@@ -20,6 +20,12 @@ const databaseSchema = new mongoose.Schema({
         default: 'hosted'
     },
 
+    // compare this value in the cron and fire the regeneration
+    cdc_checksum: {
+        type: Number,
+        default: 0
+    },
+
     // enforced using yup on the client side
     credentials: {
         type: String,

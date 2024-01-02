@@ -1,7 +1,7 @@
 import { defineConfig } from 'vite';
 import million from 'million/compiler';
 import react from '@vitejs/plugin-react-swc';
-import inject from '@rollup/plugin-inject'
+import inject from '@rollup/plugin-inject';
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -15,6 +15,14 @@ export default defineConfig({
   // optimizeDeps: {
   //   exclude: ['@sqlite.org/sqlite-wasm'],
   // },
+  // optimizeDeps:{
+  //   esbuildOptions:{
+  //     plugins:[
+  //       esbuildCommonjs(['rethinkdb-ts'])
+  //     ]
+  //   }
+  // },
+
   resolve: {
     alias: {
       renderer: "/src/components/renderer/*",
@@ -28,6 +36,13 @@ export default defineConfig({
 
   build: {
     manifest: true,
+    commonjsOptions: {
+      transformMixedEsModules: true,
+      strictRequires: true,
+      ignoreDynamicRequires: true,
+      requireReturnsDefault: true
+    },
+    sourcemap: true,
     rollupOptions: {
       external: [
         "/src/components/renderer/*",
