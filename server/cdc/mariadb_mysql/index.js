@@ -8,7 +8,7 @@ DotEnv.config({
     path: FindConfig('.env')
 });
 
-import mongoose from 'mongoose';
+// import mongoose from 'mongoose';
 import CryptoJS from "crypto-js";
 import md5 from "md5";
 import LzString from "lz-string";
@@ -82,8 +82,8 @@ export async function mark_databases_for_snapshot_regeneration() {
     )
 }
 
-;(async () => {
-    await mongoose.connect(process.env.MONGODB_URI);
+// ;(async () => {
+//     await mongoose.connect(process.env.MONGODB_URI);
 
-    await mark_databases_for_snapshot_regeneration()
-})();
+//     await mark_databases_for_snapshot_regeneration()
+// })();
