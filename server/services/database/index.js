@@ -225,7 +225,7 @@ export class GrizzyDatabaseEngine {
             case 'mysql':
                 {
                     // get the connection fetch all the tables then compute the total checksum
-                    const sequelize = new Sequelize(credentials.DB_NAME, credentials.DB_USER, credentials.DB_PASSWORD, {
+                    const sequelize = new Sequelize(credentials.DB_NAME.toUpperCase(), credentials.DB_USER, credentials.DB_PASSWORD, {
                         host: credentials?.DB_HOST ? credentials.DB_HOST : GrizzyDatabaseEngine.get_rds_uri(dialect),
                         logging: false,
                         dialect: 'mysql' /* weird kink fix it later */, /* one of 'mysql' | 'postgres' | 'sqlite' | 'mariadb' | 'mssql' | 'db2' | 'snowflake' | 'oracle' */
