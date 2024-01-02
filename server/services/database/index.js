@@ -87,7 +87,7 @@ export class GrizzyDatabaseEngine {
         const database_name = `GD_${cryptoRandomString({ 
             length: 15,
             type: "distinguishable"
-        })}`;
+        })}`.toLowerCase();
 
         const random_password = cryptoRandomString({ length: 16 });
 
