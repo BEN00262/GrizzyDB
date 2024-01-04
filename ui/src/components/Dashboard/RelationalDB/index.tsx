@@ -8,6 +8,7 @@ import Snapshots from "../../../pages/landing/components/Snapshots";
 import TimestepSnapshotComp from "../../../pages/landing/components/TimestepSnapshot";
 import InsightsTab from "../../../pages/landing/components/Insights";
 import { Credentials } from "../../../pages/landing";
+import SQLEditorComp from "../../../pages/landing/components/PopupEditor";
 
 // this is the default to any db thats relational
 function RelationalDB({ credentials, _id }: IDatabaseDisplay) {
@@ -42,9 +43,7 @@ function RelationalDB({ credentials, _id }: IDatabaseDisplay) {
         <JTab>ERD</JTab>
         <JTab>Snapshots</JTab>
         <JTab>Insights</JTab>
-        <Tooltip title="Coming soon" arrow>
-          <JTab disabled>Client</JTab>
-        </Tooltip>
+        <JTab>Client</JTab>
         <Tooltip title="Coming soon" arrow>
           <JTab disabled>Analytics</JTab>
         </Tooltip>
@@ -67,10 +66,12 @@ function RelationalDB({ credentials, _id }: IDatabaseDisplay) {
         value={3}
         sx={{
           height: "75vh",
-          border: "1px solid #efefef",
           borderRadius: "5px",
         }}
       >
+
+        <SQLEditorComp/>
+
       </JTabPanel>
 
       <JTabPanel value={4} sx={{ height: "75vh" }}>

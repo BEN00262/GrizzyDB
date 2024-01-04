@@ -186,7 +186,7 @@ function HostedDB({ database }: { database: IDatabaseDisplay }) {
             alignItems: "center",
           }}
         >
-          {["postgres", "mariadb", "mysql"].includes(database.dialect) ? (
+          {/* {["postgres", "mariadb", "mysql"].includes(database.dialect) ? (
             <>
               <SQLEditorComp />
               <div
@@ -196,7 +196,7 @@ function HostedDB({ database }: { database: IDatabaseDisplay }) {
                 }}
               />
             </>
-          ) : null}
+          ) : null} */}
           {/* <div style={{
             height: "20px",
             border: "1px solid #efefef"
