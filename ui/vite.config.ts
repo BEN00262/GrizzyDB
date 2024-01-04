@@ -36,13 +36,13 @@ export default defineConfig({
 
   build: {
     manifest: true,
-    commonjsOptions: {
-      transformMixedEsModules: true,
-      strictRequires: true,
-      ignoreDynamicRequires: true,
-      requireReturnsDefault: true
-    },
-    sourcemap: true,
+    // commonjsOptions: {
+    //   transformMixedEsModules: true,
+    //   strictRequires: true,
+    //   ignoreDynamicRequires: true,
+    //   requireReturnsDefault: true
+    // },
+    // sourcemap: true,
     rollupOptions: {
       external: [
         "/src/components/renderer/*",

@@ -12,7 +12,7 @@ import ImportComponent from "../landing/components/Import";
 import ExportComponent from "../landing/components/Export";
 import RelationalDB from "../../components/Dashboard/RelationalDB";
 import ChromaDB from "../../components/Dashboard/ChromaDB";
-import RethinkDB from "../../components/Dashboard/RethinkDB";
+// import RethinkDB from "../../components/Dashboard/RethinkDB";
 
 function BringYourOwnDB({ database }: { database: IDatabaseDisplay }) {
   const params = useParams();
@@ -115,8 +115,8 @@ export function DBDisplayFactory({ database }: { database: IDatabaseDisplay }) {
   switch (database.dialect) {
     case "chromadb":
       return <ChromaDB {...database} />;
-    case "rethinkdb":
-      return <RethinkDB {...database} />;
+    // case "rethinkdb":
+    //   return <RethinkDB {...database} />;
   }
 
   return <RelationalDB {...database} />;
