@@ -16,7 +16,7 @@ const databaseSchema = new mongoose.Schema({
     // or a you
     product_type: {
         type: String,
-        enum: ['hosted', 'bring_your_own', 'connected'],
+        enum: ['hosted', 'bring_your_own', 'connected', 'bucket'],
         default: 'hosted'
     },
 

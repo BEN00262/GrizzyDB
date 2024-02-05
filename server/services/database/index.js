@@ -43,7 +43,13 @@ export class GrizzyDatabaseEngine {
         }
     }
 
-    static get_database_factory(dialect) {
+    /**
+     * 
+     * @param {string} dialect 
+     * @param {boolean} credentials_only 
+     * @returns 
+     */
+    static get_database_factory(dialect, credentials_only = false) {
         let credentials = {};
 
         switch (dialect) {
@@ -73,6 +79,10 @@ export class GrizzyDatabaseEngine {
                 break;
             default:
                 throw new GrizzyDBException("Unsupported dialect");
+        }
+
+        if (credentials_only) {
+            return credentials;
         }
 
         return new Sequelize({
@@ -151,6 +161,90 @@ export class GrizzyDatabaseEngine {
             DB_USER: database_user,
             DB_PASSWORD: random_password
         }
+    }
+
+    // trying to add support for fdw ( PgSpider )
+    // https://towardsdatascience.com/how-to-set-up-a-foreign-data-wrapper-in-postgresql-ebec152827f3
+    // https://github.com/pgspider/pgspider
+    /**
+     * 
+     * @param {{ credentials: { DB_NAME: string, DB_HOST?: string, DB_PASSWORD: string, DB_USER: string }, dialect: string }} parent 
+     * @param {{ credentials: { DB_NAME: string, DB_HOST?: string, DB_PASSWORD: string, DB_USER: string }, dialect: string }} child 
+     */
+    static async push_databases_to_fdw_bucket(parent, child) {
+        // check if the bucket ( this is a pass through postgresql db ) already exists, if not create
+        // we might have to login using the root credentials
+        const parent_root_credentials = GrizzyDatabaseEngine.get_database_factory(parent.dialect, true);
+
+        const parent_connection = new Sequelize(parent.credentials.DB_NAME.toLowerCase(), parent_root_credentials.username, parent_root_credentials.password, {
+            host: GrizzyDatabaseEngine.get_rds_uri(parent.dialect),
+            logging: false,
+            dialect: parent.dialect === 'mariadb' ? 'mysql' : parent.dialect /* weird kink fix it later */, /* one of 'mysql' | 'postgres' | 'sqlite' | 'mariadb' | 'mssql' | 'db2' | 'snowflake' | 'oracle' */
+        });
+
+        const child_root_credentials = GrizzyDatabaseEngine.get_database_factory(child.dialect, true);
+
+        const child_connection = new Sequelize(child.credentials.DB_NAME.toLowerCase(), child_root_credentials.username, child_root_credentials.password, {
+            host: GrizzyDatabaseEngine.get_rds_uri(child.dialect),
+            logging: false,
+            dialect: child.dialect === 'mariadb' ? 'mysql' : child.dialect /* weird kink fix it later */, /* one of 'mysql' | 'postgres' | 'sqlite' | 'mariadb' | 'mssql' | 'db2' | 'snowflake' | 'oracle' */
+        });
+
+        // const root_connection = GrizzyDatabaseEngine.get_database_factory(child.dialect);
+
+
+        // create a user on the root connection
+        const random_password = cryptoRandomString({ length: 16 });
+
+        const fdw_connection_user = `FDW_USER_${cryptoRandomString({ 
+            length: 16,
+            type: "distinguishable"
+        })}`;
+
+        const fdw_connection_server_name = `FDW_server_${cryptoRandomString({ 
+            length: 16,
+            type: "distinguishable"
+        })}`.toLowerCase();
+
+
+        const user_creation_steps = [
+            `CREATE USER ${fdw_connection_user} WITH PASSWORD '${random_password}';`,
+            `GRANT USAGE ON SCHEMA PUBLIC TO ${fdw_connection_user};`,
+            // "FLUSH PRIVILEGES;",
+        ];
+
+        // execute this stuff on the root db
+        for (const statement of user_creation_steps) {
+            await child_connection.query(statement);
+        }
+
+        await parent_connection.query(`CREATE EXTENSION IF NOT EXISTS postgres_fdw;`);
+        await parent_connection.query(`CREATE SERVER ${fdw_connection_server_name} FOREIGN DATA WRAPPER postgres_fdw OPTIONS (host '${GrizzyDatabaseEngine.get_rds_uri(child.dialect)}', port '5432', dbname '${child.credentials.DB_NAME}');`);
+        await parent_connection.query(`CREATE USER MAPPING FOR ${parent.credentials.DB_USER} SERVER ${fdw_connection_server_name} OPTIONS (user '${fdw_connection_user}', password '${random_password}');`);
+        await parent_connection.query(`ALTER SERVER ${fdw_connection_server_name} OWNER TO ${parent.credentials.DB_USER};`);
+        await parent_connection.query(`GRANT USAGE ON FOREIGN SERVER ${fdw_connection_server_name} TO ${parent.credentials.DB_USER};`);
+        // await parent_connection.query(`ALTER SERVER ${fdw_connection_server_name} OWNER TO ${parent.credentials.DB_USER};`);
+
+        const base_parent_connection = new Sequelize(parent.credentials.DB_NAME.toLowerCase(), parent.credentials.DB_USER, parent.credentials.DB_PASSWORD, {
+            host: GrizzyDatabaseEngine.get_rds_uri(parent.dialect),
+            logging: false,
+            dialect: parent.dialect === 'mariadb' ? 'mysql' : parent.dialect /* weird kink fix it later */, /* one of 'mysql' | 'postgres' | 'sqlite' | 'mariadb' | 'mssql' | 'db2' | 'snowflake' | 'oracle' */
+        });
+
+        await base_parent_connection.query(`IMPORT FOREIGN SCHEMA public FROM SERVER ${fdw_connection_server_name} INTO public;`);
+
+
+        // close all the connections
+        await Promise.allSettled([parent_connection.close(), child_connection.close(), /*root_connection.close()*/ base_parent_connection.close()]);
+    }
+
+    /**
+     * 
+     * @param {{ credentials: { DB_NAME: string, DB_HOST?: string, DB_PASSWORD: string, DB_USER: string }, dialect: string }} parent 
+     * @param {{ credentials: { DB_NAME: string, DB_HOST?: string, DB_PASSWORD: string, DB_USER: string }, dialect: string }} child 
+     */
+    static async remove_databases_from_fdw_bucket(parent, child) {
+
     }
 
     /**

@@ -2,10 +2,12 @@ import {
   ApiKeyModel,
   DatabaseModel,
   DatabaseProvisionModel,
+  FDWBucketModel,
   FolderModel,
   PricingModel,
   QuickAccessModel,
   SnapshotModel,
+  SnippetModel,
   SubscriptionModel,
 } from "../../models/index.js";
 
@@ -32,11 +34,175 @@ import humanTime from "human-time";
 import { sendToSnapshotGeneratorQueue } from "../../rabbitmq/client.js";
 import {LemonSqueezy} from "@lemonsqueezy/lemonsqueezy.js";
 import moment from "moment";
+import mongoose from 'mongoose';
 
 
 const lemon_squeezy_payments_gateway = new LemonSqueezy(process.env.LEMONSQUEEZY_API_KEY);
 
+async function check_if_has_active_subscription(req) {
+  const active_subscription = await SubscriptionModel.count({
+    owner: req.user._id,
+    status: 'paid',
+    endTime: {
+      $gte: moment()
+    }
+  });
+
+  if (!active_subscription) {
+    let already_provisioned_databases = await DatabaseModel.count({
+      owner: req.user._id,
+    });
+
+    if (already_provisioned_databases >= 3) {
+      throw new GrizzyDBException(
+        "You are only limited to a max of 3 databases on the free tier"
+      );
+    }
+  }
+}
+
 export class DatabaseController {
+  static async create_fdw_bucket(req, res) {
+    try {
+      // we will allow someone to initialize with a bunch of dbs to begin with
+      const { name, dialect, databases } = req.body;
+      const { parent_folder } = req.params;
+
+      // await check_if_has_active_subscription(req);
+
+      if (!Array.isArray(databases)) {
+        throw new GrizzyDBException('databases should be an array');
+      }
+
+      // create the bucket
+      const credentials = await GrizzyDatabaseEngine.provision_database(dialect);
+      // const random_folder_uuid = new mongoose.ObjectId();
+
+      // console.log(random_folder_uuid)
+
+      const database = await DatabaseModel.create({
+        name: credentials.DB_NAME,
+        product_type: "bucket",
+        dialect,
+        credentials: CryptoJS.AES.encrypt(
+          JSON.stringify(credentials),
+          process.env.MASTER_AES_ENCRYPTION_KEY
+        ),
+
+        // hide this ones
+        // TODO: FIXME
+        folder: '5f64a5f8f59b9a1bf6a5e789', // new mongoose.ObjectId(), // random value so that its not attached to any folder, doesn't need to
+        owner: req.user._id,
+      });
+
+      // we have the parent node, we need the children nodes
+      await FDWBucketModel.create({
+        name,
+        parent_node: database._id,
+        child_nodes: databases,
+        ...(parent_folder ? { folder: parent_folder } : {}),
+        owner: req.user._id,
+      });
+
+      return massage_response({ status: true }, res);
+    } catch (error) {
+      return massage_error(error, res);
+    }
+  }
+
+  static async add_databases_to_fdw_bucket(req, res) {
+    try {
+      const { bucket_reference, database_reference } = req.params;
+
+      const bucket = await FDWBucketModel.findOneAndUpdate({
+        _id: bucket_reference,
+        owner: req.user._id,
+      }, {
+        $addToSet: {
+          child_nodes: database_reference
+        }
+      }, { new: true });
+
+      const [parent, child] = await Promise.all([
+        DatabaseModel.findOne({
+          _id: bucket.parent_node,
+          owner: req.user.id
+        }),
+
+        DatabaseModel.findOne({
+          _id: database_reference,
+          owner: req.user.id
+        })
+      ]);
+
+      const parent_credentials = JSON.parse(
+        CryptoJS.AES.decrypt(
+          parent.credentials,
+          process.env.MASTER_AES_ENCRYPTION_KEY
+        ).toString(CryptoJS.enc.Utf8)
+      );
+
+      const child_credentials = JSON.parse(
+        CryptoJS.AES.decrypt(
+          child.credentials,
+          process.env.MASTER_AES_ENCRYPTION_KEY
+        ).toString(CryptoJS.enc.Utf8)
+      );
+
+      await GrizzyDatabaseEngine.push_databases_to_fdw_bucket(
+        {
+          credentials: parent_credentials,
+          dialect: parent.dialect
+        },
+
+        {
+          credentials: child_credentials,
+          dialect: child.dialect
+        }
+      )
+
+      // trigger some sort of a job to connect
+      // get the parent, child then pass to the service function
+
+
+      return massage_response({ status: true }, res);
+    } catch (error) {
+      return massage_error(error, res);
+    }
+  }
+
+  static async remove_database_from_fdw_bucket(req, res) {
+    try {
+      const { bucket_reference, database_reference } = req.params;
+
+      await FDWBucketModel.updateOne({
+        _id: bucket_reference,
+        owner: req.user._id,
+      }, {
+        $pull: {
+          child_nodes: database_reference
+        }
+      });
+
+      return massage_response({ status: true }, res);
+    } catch (error) {
+      return massage_error(error, res);
+    }
+  }
+
+  static async delete_fdw_bucket(req, res) {
+    try {
+      // we will remove the connections then delete the bucket, retain the databases though
+      // TODO: finish up on this
+
+      return massage_response({ status: true }, res);
+    } catch (error) {
+      return massage_error(error, res);
+    }
+  }
+
+
+
   static async get_query_analytics(req, res) {
     try {
       const { database_reference } = req.params;
@@ -63,6 +229,113 @@ export class DatabaseController {
       }
 
       return massage_response({ queries }, res);
+    } catch (error) {
+      return massage_error(error, res);
+    }
+  }
+
+  // SNIPPETS
+  static async get_snippets(req, res) {
+    try {
+      const snippets = await SnippetModel.find({
+        owner: req.user._id
+      });
+
+      return massage_response({ snippets }, res);
+    } catch (error) {
+      return massage_error(error, res);
+    }
+  }
+
+  static async create_snippet(req, res) {
+    try {
+      const { database_reference } = req.params;
+      const { name, snippet } = req.body;
+
+      // ensure the guy owns the database first
+      const database_is_mine = await DatabaseModel.count({
+        _id: database_reference,
+        owner: req.user._id
+      });
+
+      if (!database_is_mine) {
+        // throw an error
+        throw new GrizzyDBException("You don't have rights to add snippets to the given database");
+      }
+
+      await SnippetModel.create({
+        name,
+        snippet,
+        database: database_reference,
+        owner: req.user._id
+      });
+
+      return massage_response({ status: true }, res);
+    } catch (error) {
+      return massage_error(error, res);
+    }
+  }
+
+  static async delete_snippet(req, res) {
+    try {
+      const { snippet_reference } = req.params;
+
+      await SnippetModel.deleteOne({
+        _id: snippet_reference,
+        owner: req.user._id
+      });
+
+      return massage_response({ status: true }, res);
+    } catch (error) {
+      return massage_error(error, res);
+    }
+  }
+
+  static async update_snippet(req, res) {
+    try {
+      const { snippet_reference } = req.params;
+      const { name, snippet } = req.body;
+
+      await SnippetModel.updateOne({ _id: snippet_reference, owner: req.user._id }, {
+        name,
+        snippet
+      });
+
+      return massage_response({ status: true }, res);
+    } catch (error) {
+      return massage_error(error, res);
+    }
+  }
+
+  static async execute_snippet(req, res) {
+    try {
+      // get the snippet then execute it
+      const { snippet_reference } = req.params;
+
+      const snippet = await SnippetModel.findOne({
+        _id: snippet_reference,
+        owner: req.user._id
+      }).populate('database');
+
+      if (!snippet) {
+        throw new GrizzyDBException("Failed to find the requested snippet");
+      }
+
+      // we get the database attached
+      const credentials = JSON.parse(
+        CryptoJS.AES.decrypt(
+          snippet.database.credentials,
+          process.env.MASTER_AES_ENCRYPTION_KEY
+        ).toString(CryptoJS.enc.Utf8)
+      );
+
+      const response = await GrizzyDatabaseEngine.query_database(
+        snippet.snippet,
+        snippet.database.dialect,
+        credentials
+      );
+
+      return massage_response({ response }, res);
     } catch (error) {
       return massage_error(error, res);
     }
@@ -698,25 +971,7 @@ export class DatabaseController {
         selected_template,
       } = req.body;
 
-      const active_subscription = await SubscriptionModel.count({
-        owner: req.user._id,
-        status: 'paid',
-        endTime: {
-          $gte: moment()
-        }
-      });
-
-      if (!active_subscription) {
-        let already_provisioned_databases = await DatabaseModel.count({
-          owner: req.user._id,
-        });
-  
-        if (already_provisioned_databases >= 3) {
-          throw new GrizzyDBException(
-            "You are only limited to a max of 3 databases on the free tier"
-          );
-        }
-      }
+      await check_if_has_active_subscription(req);
 
       // check what we have first
       if (selected_template === "bring_your_own") {

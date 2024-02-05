@@ -27,6 +27,48 @@ router.get(
 
 router.use([EnsureIsAuthenticated]);
 
+router.post(
+  '/bucket/:parent_folder?',
+  DatabaseController.create_fdw_bucket
+);
+
+router.put(
+  '/bucket/:bucket_reference/:database_reference',
+  DatabaseController.add_databases_to_fdw_bucket
+);
+
+router.delete(
+  '/bucket/:bucket_reference/:database_reference',
+  DatabaseController.remove_database_from_fdw_bucket
+);
+
+
+router.get(
+  '/snippets',
+  DatabaseController.get_snippets
+);
+
+router.post(
+  '/snippets/:database_reference',
+  DatabaseController.create_snippet
+);
+
+router.delete(
+  '/snippets/:snippet_reference',
+  DatabaseController.delete_snippet
+);
+
+router.put(
+  '/snippets/:snippet_reference',
+  DatabaseController.update_snippet
+);
+
+router.get(
+  '/execute/snippets/:snippet_reference',
+  DatabaseController.execute_snippet
+);
+
+
 router.get(
   '/query-analytics/:database_reference',
   DatabaseController.get_query_analytics

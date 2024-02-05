@@ -110,3 +110,10 @@ export interface IPricingDeal {
     caption: string;
     features: string[];
 }
+
+export interface ISnippet {
+    _id?: string;
+    name?: string;
+    snippet: string;
+    updatedAt?: string;
+}

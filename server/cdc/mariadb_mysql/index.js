@@ -25,19 +25,14 @@ export async function mark_databases_for_snapshot_regeneration() {
     // NOTE: this is a very hacky way to mark dbs for snapshot regeneration
     
     const databases_to_watch = await DatabaseModel.find({
-        // name: 'GD_85K48EMH5UEMKC2',
         dialect: {
             '$in': ['postgres', 'mariadb', 'mysql', 'sqllite']
         }
     });
 
-    // console.log(databases_to_watch)
-
     await Promise.allSettled(
         databases_to_watch.map(async database => {
             try {
-                // mark the db for snapshot regeneration
-            // then update the cdc checksum check
             const credentials = JSON.parse(
                 CryptoJS.AES.decrypt(
                     database.credentials,
@@ -51,11 +46,8 @@ export async function mark_databases_for_snapshot_regeneration() {
                 credentials
             );
 
-            // console.log(database.name, database.dialect, cdc_checksum)
-
             // compare the cdc with what we have if there is a change, mark it for sweep
             if (cdc_checksum && (database.cdc_checksum !== cdc_checksum)) {
-                // mark it for regeneration
                 const snapshot = await SnapshotModel.create({
                     status: 'scheduled',
                     checksum: md5(`${Date.now}`), // this is a placeholder checksum
@@ -71,9 +63,7 @@ export async function mark_databases_for_snapshot_regeneration() {
                 });
 
                 // mark the db as having being snapshoted
-                await DatabaseModel.updateOne({ _id: database._id }, {
-                    cdc_checksum: cdc_checksum
-                })   
+                await DatabaseModel.updateOne({ _id: database._id }, { cdc_checksum });   
             }
             } catch (error) {
                 console.log(error);
@@ -82,8 +72,7 @@ export async function mark_databases_for_snapshot_regeneration() {
     )
 }
 
-// ;(async () => {
-//     await mongoose.connect(process.env.MONGODB_URI);
-
-//     await mark_databases_for_snapshot_regeneration()
-// })();
+;(async () => {
+    await mongoose.connect(process.env.MONGODB_URI);
+    await mark_databases_for_snapshot_regeneration()
+})();

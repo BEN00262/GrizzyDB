@@ -15,9 +15,6 @@ import { Divider } from "@mui/material";
 import { useDrag, useDrop } from "react-dnd";
 import { LuNetwork } from "react-icons/lu";
 
-// import { Menu, Item, Separator, Submenu, useContextMenu } from 'react-contexify';
-// import 'react-contexify/ReactContexify.css';
-
 import { useNavigate, useParams } from "react-router-dom";
 import NotFoundSvg from "../../../assets/not_found.svg";
 import { PricingModal } from "../../../components/PricingModal";
@@ -30,7 +27,7 @@ import {
   check_if_subscribed,
   create_quick_links,
   get_my_databases,
-  move_to_folder
+  move_to_folder,
 } from "../../landing/api";
 import FileMoveComp from "../../landing/components/FileMove";
 import FolderCreateComp from "../../landing/components/FolderCreate";
@@ -214,7 +211,6 @@ const DatabaseFile = ({ database }: { database: IDatabaseDisplay }) => {
 };
 
 export default function Databases() {
-  const [isProvisionModalopen, setIsProvisionModalOpen] = useState(false);
   const { databases } = useGrizzyDBState();
   const dispatch = useGrizzyDBDispatch();
 
@@ -245,8 +241,7 @@ export default function Databases() {
 
   return (
     <>
-      <ProvisionModal/>{" "}
-      <FolderCreateComp /> <FileMoveComp />
+      <ProvisionModal /> <FolderCreateComp /> <FileMoveComp />
       <Divider
         className="action-text"
         style={{
@@ -264,28 +259,14 @@ export default function Databases() {
           <p
             style={{
               fontWeight: "bold",
-              letterSpacing: '1px'
+              letterSpacing: "1px",
             }}
             className="action-text"
           >
             You are currently on a free subscription, upgrade to enjoy the full
             features of GrizzyDB
           </p>
-          {/* <LoadingButton
-            variant="outlined"
-            className="action-text"
-            size="small"
-            style={{
-              color: "black",
-              border: "1px solid #000",
-            }}
-            loading={checkout_link_mutation.isLoading}
-            disabled={checkout_link_mutation.isLoading}
-            onClick={() => checkout_link_mutation.mutate()}
-          >
-            change subscription
-          </LoadingButton> */}
-          <PricingModal/>
+          <PricingModal />
         </div>
       ) : null}
       <Row>

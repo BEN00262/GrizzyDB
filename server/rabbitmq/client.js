@@ -14,7 +14,9 @@ export const sendToSnapshotGeneratorQueue = ({ database_id, snapshot_id, task, r
                 Buffer.from(
                     JSON.stringify({ database_id, snapshot_id, task, rehydrate_snapshot_id, remote_actual_credentials })
                 ), 
-                { persistent: true }
+                
+                // determine the message priority based on what it is
+                { persistent: true, priority: 1 }
             );
 
             resolve(true);

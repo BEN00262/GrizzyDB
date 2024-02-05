@@ -2,3 +2,18 @@
   margin: 0;
   padding: 0;
 }
+
+.scroll-style::-webkit-scrollbar-track-piece {
+  background: #f0f0f0;
+  border-radius: 20px;
+}
+
+.scroll-style::-webkit-scrollbar {
+  width: 0px;
+  height: 0px;
+}
+
+.scroll-style::-webkit-scrollbar-thumb {
+  background: #d3d3d3;
+  border-radius: 20px;
+}

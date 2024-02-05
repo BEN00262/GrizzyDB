@@ -8,3 +8,5 @@ export * from './folder.js';
 export * from './favourites.js';
 export * from './subscription.js';
 export * from './pricing.js';
+export * from './snippet.js';
+export * from  './fdw_bucket.js';
