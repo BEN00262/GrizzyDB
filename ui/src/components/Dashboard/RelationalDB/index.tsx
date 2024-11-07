@@ -52,8 +52,6 @@ function RelationalDB({ credentials, _id }: IDatabaseDisplay) {
         <JTab>ERD</JTab>
         <JTab>Snapshots</JTab>
         <JTab>Insights</JTab>
-        <JTab>Client</JTab>
-        <JTab disabled>Snippets</JTab>
         <JTab>Credentials</JTab>
       </JTabList>
 
@@ -69,71 +67,7 @@ function RelationalDB({ credentials, _id }: IDatabaseDisplay) {
         <InsightsTab />
       </JTabPanel>
 
-      <JTabPanel
-        value={3}
-        sx={{
-          height: "75vh",
-          borderRadius: "5px",
-        }}
-      >
-        <SQLEditorComp />
-      </JTabPanel>
-
-      <JTabPanel value={4} sx={{ height: "75vh" }}>
-        {/* ripped from supabase */}
-        {/* snippets you want to be executed at given times or during given periods */}
-        <SnippetEditorComp />
-
-        <Divider
-          className="action-text"
-          style={{
-            margin: "20px auto",
-          }}
-        />
-
-        <Row>
-          <Col xs={6} md={4} lg={3}>
-            <SnippetEditorWrapperComp>
-              <div
-                style={{
-                  height: "100px",
-                  border: "1px solid #d3d3d3",
-                  borderRadius: "2px",
-                  padding: "10px",
-                  display: "flex",
-                  flexDirection: "column",
-                  justifyContent: "center",
-                  cursor: "pointer",
-                }}
-              >
-                <div
-                  style={{
-                    fontWeight: "bold",
-                    fontSize: "18px",
-                  }}
-                >
-                  Icrement field value
-                </div>
-                <div
-                  style={{
-                    fontSize: "10px",
-                    overflow: "hidden",
-                    whiteSpace: "nowrap",
-                    textOverflow: "ellipsis",
-                  }}
-                >
-                  Lorem ipsum dolor sit, amet consectetur adipisicing elit.
-                  Labore commodi atque corporis repudiandae. Optio consequuntur
-                  voluptate deserunt amet, ea aperiam similique dicta itaque
-                  possimus. Et ad quaerat sint quod sapiente.
-                </div>
-              </div>
-            </SnippetEditorWrapperComp>
-          </Col>
-        </Row>
-      </JTabPanel>
-
-      <JTabPanel value={5} sx={{ height: "75vh" }}>
+      <JTabPanel value={3} sx={{ height: "75vh" }}>
         <div
           style={{
             height: "400px",

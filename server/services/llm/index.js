@@ -5,7 +5,7 @@ DotEnv.config({
     path: FindConfig('.env')
 });
 
-// NOTE: switched to openai sdk due to langchain not offering support for gpt-3.5-turbo-16k
+// NOTE: switched to openai sdk due to langchain not offering support for gpt-4o-mini
 import { Configuration, OpenAIApi } from "openai";
 import findAndParseJsonLikeText from 'json-like-parse';
 
@@ -39,7 +39,7 @@ class GrizzyLLM {
         `;
 
         const chatCompletion = await this.openai.createChatCompletion({
-            model: "gpt-3.5-turbo-16k",
+            model: "gpt-4o-mini",
             messages: [{
                 role: "user", 
                 content: template
@@ -72,7 +72,7 @@ class GrizzyLLM {
         `;
 
         const chatCompletion = await this.openai.createChatCompletion({
-            model: "gpt-3.5-turbo-16k",
+            model: "gpt-4o-mini",
             messages: [{
                 role: "user", 
                 content: template

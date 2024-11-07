@@ -387,8 +387,9 @@ export class GrizzyDatabaseEngine {
             switch (dialect) {
                 case 'postgres':
                     {
+                        let with_or_without_windows = process.platform === 'win32' ? `set PGPASSWORD=${credentials.DB_PASSWORD} &&` : `PGPASSWORD=${credentials.DB_PASSWORD}`;
                         let { stdout } = await execute_commands_async(
-                            `PGPASSWORD=${credentials.DB_PASSWORD} psql -U ${credentials.DB_USER} -h ${credentials?.DB_HOST ? credentials.DB_HOST : GrizzyDatabaseEngine.get_rds_uri(dialect)} -w -c "SELECT d.datname FROM pg_database d WHERE has_database_privilege(current_user, d.datname, 'CREATE');"`
+                            `${with_or_without_windows} psql -U ${credentials.DB_USER} -h ${credentials?.DB_HOST ? credentials.DB_HOST : GrizzyDatabaseEngine.get_rds_uri(dialect)} -w -c "SELECT d.datname FROM pg_database d WHERE has_database_privilege(current_user, d.datname, 'CREATE');"`
                         );
 
                         stdout = stdout.trim().split('\n').map(u => u.trim()).filter(u => u)
@@ -543,8 +544,10 @@ export class GrizzyDatabaseEngine {
             switch (dialect) {
                 case 'postgres':
                     {
+                        let with_or_without_windows = process.platform === 'win32' ? `set PGPASSWORD=${credentials.DB_PASSWORD} &&` : `PGPASSWORD=${credentials.DB_PASSWORD}`;
+
                         await execute_commands_async(
-                            `PGPASSWORD=${credentials.DB_PASSWORD} psql -U ${credentials.DB_USER} -h ${credentials?.DB_HOST ? credentials.DB_HOST : GrizzyDatabaseEngine.get_rds_uri(dialect)} -w -d ${credentials.DB_NAME} < ${snapshot_path}`
+                            `${with_or_without_windows} psql -U ${credentials.DB_USER} -h ${credentials?.DB_HOST ? credentials.DB_HOST : GrizzyDatabaseEngine.get_rds_uri(dialect)} -w -d ${credentials.DB_NAME} < ${snapshot_path}`
                         );
                         
                         break;
@@ -576,8 +579,10 @@ export class GrizzyDatabaseEngine {
         switch (dialect) {
             case 'postgres':
                 {
+                    let with_or_without_windows = process.platform === 'win32' ? `set PGPASSWORD=${credentials.DB_PASSWORD} &&` : `PGPASSWORD=${credentials.DB_PASSWORD}`;
+
                     await execute_commands_async(
-                        `PGPASSWORD=${credentials.DB_PASSWORD} pg_dump -U ${credentials.DB_USER} -h ${credentials?.DB_HOST ? credentials.DB_HOST : GrizzyDatabaseEngine.get_rds_uri(dialect)} -w -d ${credentials.DB_NAME} > ${temp_file_path}`
+                        `${with_or_without_windows} pg_dump -U ${credentials.DB_USER} -h ${credentials?.DB_HOST ? credentials.DB_HOST : GrizzyDatabaseEngine.get_rds_uri(dialect)} -w -d ${credentials.DB_NAME} > ${temp_file_path}`
                     );
                     
                     break;
