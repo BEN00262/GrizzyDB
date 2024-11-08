@@ -110,12 +110,12 @@ function BringYourOwnDB({ database }: { database: IDatabaseDisplay }) {
 }
 
 export function DBDisplayFactory({ database }: { database: IDatabaseDisplay }) {
-  switch (database.dialect) {
-    case "chromadb":
-      return <ChromaDB {...database} />;
-    // case "rethinkdb":
-    //   return <RethinkDB {...database} />;
-  }
+  // switch (database.dialect) {
+  //   case "chromadb":
+  //     return <ChromaDB {...database} />;
+  //   // case "rethinkdb":
+  //   //   return <RethinkDB {...database} />;
+  // }
 
   return <RelationalDB {...database} />;
 }
