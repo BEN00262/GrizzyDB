@@ -1,3 +1,3 @@
 [phases]
-setup = "cd server && npm install"
+setup = "cd server && npm install -f"
 start = "cd server && node app.js"
