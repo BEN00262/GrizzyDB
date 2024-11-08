@@ -126,6 +126,9 @@ function HostedDB({ database }: { database: IDatabaseDisplay }) {
   const params = useParams();
   const [title, setTitle] = useState(database.name ?? "");
 
+  const navigate = useNavigate();
+  const location = useLocation();
+
   const handleMetadataUpdate = useMutation(
     () => update_database_metadata(params.id ?? "", { name: title }),
     {
@@ -137,7 +140,11 @@ function HostedDB({ database }: { database: IDatabaseDisplay }) {
 
   const handleDeleteDB = useMutation(() => delete_database(params.id ?? ""), {
     onSuccess: () => {
-      // remove_database(dispatch, params.id);
+      if (location.key === "default") {
+        return navigate("-1", { replace: true });
+      }
+
+      return navigate("/dashboard", { replace: true });
     },
   });
 

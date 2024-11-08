@@ -455,9 +455,16 @@ export class GrizzyDatabaseEngine {
     }
 
     static async get_query_analytics(dialect, how_many_rows = 10, credentials = {}) {
+        let root_database_credentials = this.get_database_factory(dialect, true);
         const template = templates[dialect.toLowerCase()];
 
         if (template) {
+            const parent_root_sequelize = new Sequelize(credentials.DB_NAME, root_database_credentials.username, root_database_credentials.password, {
+                host: credentials?.DB_HOST ? credentials.DB_HOST : GrizzyDatabaseEngine.get_rds_uri(dialect),
+                logging: false,
+                dialect: dialect === 'mariadb' ? 'mysql' : dialect /* weird kink fix it later */, /* one of 'mysql' | 'postgres' | 'sqlite' | 'mariadb' | 'mssql' | 'db2' | 'snowflake' | 'oracle' */
+            });
+
             const sequelize = new Sequelize(credentials.DB_NAME, credentials.DB_USER, credentials.DB_PASSWORD, {
                 host: credentials?.DB_HOST ? credentials.DB_HOST : GrizzyDatabaseEngine.get_rds_uri(dialect),
                 logging: false,
@@ -472,7 +479,7 @@ export class GrizzyDatabaseEngine {
                 case 'postgres':
                     // a bit different
                     // check the version first
-                    await sequelize.query("CREATE EXTENSION IF NOT EXISTS pg_stat_statements;");
+                    await parent_root_sequelize.query("CREATE EXTENSION IF NOT EXISTS pg_stat_statements;");
                     // TODO: make this more dynamic
                     // const database_version = await sequelize.databaseVersion();
 
@@ -496,7 +503,10 @@ export class GrizzyDatabaseEngine {
             }
     
             // close the connection
-            await sequelize.close();
+            await Promise.all([
+                parent_root_sequelize.close(),
+                sequelize.close()
+            ]);
     
             return response?.[0] ?? [];
         }
@@ -708,14 +718,23 @@ export class GrizzyDatabaseEngine {
         return null;
     }
 
-    static async delete_database(dialect, credentials) {
-        const sequelize = new Sequelize(credentials.DB_NAME, credentials.DB_USER, credentials.DB_PASSWORD, {
-            host: GrizzyDatabaseEngine.get_rds_uri(dialect),
-            logging: false,
-            dialect: dialect === 'mariadb' ? 'mysql' : dialect /* weird kink fix it later */, /* one of 'mysql' | 'postgres' | 'sqlite' | 'mariadb' | 'mssql' | 'db2' | 'snowflake' | 'oracle' */
-        });
+    static async delete_database(dialect, database) {
+        try {
+            let credentials = this.get_database_factory(dialect, true);
+            const schema = templates[dialect];
+            
+            const sequelize = new Sequelize(schema.base_database, credentials.username, credentials.password, {
+                host: GrizzyDatabaseEngine.get_rds_uri(dialect),
+                logging: false,
+                dialect: dialect === 'mariadb' ? 'mysql' : dialect /* weird kink fix it later */, /* one of 'mysql' | 'postgres' | 'sqlite' | 'mariadb' | 'mssql' | 'db2' | 'snowflake' | 'oracle' */
+            });
 
-        await sequelize.query(`DROP DATABASE ${credentials.DB_NAME};`);        
+            await sequelize.query(`DROP DATABASE ${database.DB_NAME};`);
+        } catch (error) {
+            if (!(error instanceof Sequelize.DatabaseError && error.original.code === '3D000' /* database does not exist */)) {
+                throw error;
+            }
+        }
     }
 
     // import schema defs to reactflow

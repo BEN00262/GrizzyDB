@@ -1152,34 +1152,38 @@ export class DatabaseController {
         throw new GrizzyDBException("Database not found");
       }
 
-      const credentials = JSON.parse(
-        CryptoJS.AES.decrypt(
-          database.credentials,
-          process.env.MASTER_AES_ENCRYPTION_KEY
-        ).toString(CryptoJS.enc.Utf8)
-      );
+      // const credentials = JSON.parse(
+      //   CryptoJS.AES.decrypt(
+      //     database.credentials,
+      //     process.env.MASTER_AES_ENCRYPTION_KEY
+      //   ).toString(CryptoJS.enc.Utf8)
+      // );
 
       // we also need to update the credentials
       database.name = name;
-      database.credentials = CryptoJS.AES.encrypt(
-        JSON.stringify({
-          ...credentials,
-          DB_NAME: morph_name_to_valid_database_name(name),
-        }),
-        process.env.MASTER_AES_ENCRYPTION_KEY
-      );
+
+      // this is not right -- we should not modify the credentials
+      // database.credentials = CryptoJS.AES.encrypt(
+      //   JSON.stringify({
+      //     ...credentials,
+      //     DB_NAME: morph_name_to_valid_database_name(name),
+      //   }),
+      //   process.env.MASTER_AES_ENCRYPTION_KEY
+      // );
 
       // TODO: use a transaction
-      await Promise.all([
-        database.save(),
+      // await Promise.all([
+      //   database.save(),
 
-        // fire an event to also actually rename the database
-        GrizzyDatabaseEngine.rename_database(
-          database.dialect,
-          name,
-          credentials
-        ),
-      ]);
+      //   // fire an event to also actually rename the database
+      //   GrizzyDatabaseEngine.rename_database(
+      //     database.dialect,
+      //     name,
+      //     credentials
+      //   ),
+      // ]);
+
+      await database.save();
 
       return massage_response({ status: true }, res);
     } catch (error) {
@@ -1523,13 +1527,17 @@ export class DatabaseController {
   }
 
   static async delete_database(req, res) {
+    const session = await mongoose.startSession();
+
     try {
+      session.startTransaction();
+
       const { database_reference } = req.params;
 
       const database = await DatabaseModel.findOne({
         _id: database_reference,
         owner: req.user._id,
-      });
+      }).session(session);
 
       if (!database) {
         throw new GrizzyDBException("Database not found");
@@ -1543,6 +1551,7 @@ export class DatabaseController {
       );
 
       if (database.product_type === "hosted") {
+        // capture errors of the db not existing -- if so just return success
         await GrizzyDatabaseEngine.delete_database(
           database.dialect,
           credentials
@@ -1550,10 +1559,18 @@ export class DatabaseController {
       }
 
       // delete the record
-      await DatabaseModel.deleteOne({ _id: database._id });
+      // add sessions
+
+      await Promise.all([
+        DatabaseModel.deleteOne({ _id: database._id }, { session }),
+        QuickAccessModel.deleteMany({ database: database._id }, { session}),
+      ]);
+
+      await session.commitTransaction();
 
       return massage_response({ status: true }, res);
     } catch (error) {
+      await session.abortTransaction();
       return massage_error(error, res);
     }
   }
