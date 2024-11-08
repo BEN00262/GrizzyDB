@@ -1,3 +1,6 @@
+[pkgs]
+nodejs = "18.14.0"  # Replace "18" with your preferred Node.js version
+
 [phases.setup]
 run = "cd server && npm install"
 
