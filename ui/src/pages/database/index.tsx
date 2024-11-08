@@ -11,8 +11,6 @@ import { delete_database, get_database, update_database_metadata } from "./api";
 import ImportComponent from "../landing/components/Import";
 import ExportComponent from "../landing/components/Export";
 import RelationalDB from "../../components/Dashboard/RelationalDB";
-import ChromaDB from "../../components/Dashboard/ChromaDB";
-// import RethinkDB from "../../components/Dashboard/RethinkDB";
 
 function BringYourOwnDB({ database }: { database: IDatabaseDisplay }) {
   const params = useParams();
