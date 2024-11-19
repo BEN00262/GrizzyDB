@@ -95,7 +95,7 @@
     "exceljs": "^4.3.0",
     "focus-trap-react": "^8.10.0",
     "framer-motion": "^6.3.3",
-    "graphiql": "^3.0.0",
+    "graphiql": "^3.7.1",
     "graphql": "^16.7.1",
     "highlight.js": "^11.5.1",
     "html-entities": "^2.3.3",
