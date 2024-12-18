@@ -388,6 +388,7 @@ export class GrizzyDatabaseEngine {
                 case 'postgres':
                     {
                         let with_or_without_windows = process.platform === 'win32' ? `set PGPASSWORD=${credentials.DB_PASSWORD} &&` : `PGPASSWORD=${credentials.DB_PASSWORD}`;
+
                         let { stdout } = await execute_commands_async(
                             `${with_or_without_windows} psql -U ${credentials.DB_USER} -h ${credentials?.DB_HOST ? credentials.DB_HOST : GrizzyDatabaseEngine.get_rds_uri(dialect)} -w -c "SELECT d.datname FROM pg_database d WHERE has_database_privilege(current_user, d.datname, 'CREATE');"`
                         );
@@ -589,7 +590,12 @@ export class GrizzyDatabaseEngine {
         switch (dialect) {
             case 'postgres':
                 {
-                    let with_or_without_windows = process.platform === 'win32' ? `set PGPASSWORD=${credentials.DB_PASSWORD} &&` : `PGPASSWORD=${credentials.DB_PASSWORD}`;
+                    // switch to powershell for windows
+                    /*
+                        $env:PGPASSWORD="+Y!c9&2^YYFz_t_sB*qbV?"; pg_dump -U irdb_prod_admin -h ir-production-resized2.cfep3ccwhxle.eu-west-2.rds.amazonaws.com -d prod-app-ecosystem > "C:\Users\johnn\AppData\Local\Temp\dump.sql"
+                    */
+
+                    let with_or_without_windows = process.platform === 'win32' ? `set PGPASSWORD="${credentials.DB_PASSWORD}" &&` : `PGPASSWORD=${credentials.DB_PASSWORD}`;
 
                     await execute_commands_async(
                         `${with_or_without_windows} pg_dump -U ${credentials.DB_USER} -h ${credentials?.DB_HOST ? credentials.DB_HOST : GrizzyDatabaseEngine.get_rds_uri(dialect)} -w -d ${credentials.DB_NAME} > ${temp_file_path}`

@@ -110,7 +110,10 @@ export function Credentials({ credentials }: { credentials: ICredential[] }) {
   );
 }
 
-export function BringYourOwnDBUI({ _id }: IDatabaseDisplay) {
+export function BringYourOwnDBUI({
+  _id,
+  share,
+}: IDatabaseDisplay & { share?: boolean }) {
   const { data: instructions } = useQuery(
     ["instructions"],
     () => get_monitor_installation_instructions(_id),
@@ -122,58 +125,64 @@ export function BringYourOwnDBUI({ _id }: IDatabaseDisplay) {
   );
 
   return (
-    <JTabs defaultValue={0} size="sm">
-      <JTabList
-        className="action-text"
-        variant="plain"
-        sx={{
-          "--List-padding": "0px",
-          "--List-radius": "0px",
-          "--ListItem-minHeight": "48px",
-          [`& .${tabClasses.root}`]: {
-            boxShadow: "none",
-            fontWeight: "md",
-            [`&.${tabClasses.selected}::before`]: {
-              content: '""',
-              display: "block",
-              position: "absolute",
-              left: "var(--ListItem-paddingLeft)", // change to `0` to stretch to the edge.
-              right: "var(--ListItem-paddingRight)", // change to `0` to stretch to the edge.
-              bottom: 0,
-              height: 3,
-              bgcolor: "primary.400",
-            },
-          },
-          width: "50%",
-          margin: "auto",
-          marginBottom: "20px",
-        }}
-      >
-        <JTab>ERD</JTab>
-        <JTab>Installation (instructions)</JTab>
-        {/* <JTab>Snapshots (versions)</JTab> */}
-        {/* <JTab>Analytics</JTab> */}
-        {/* <JTab>Notifications</JTab> */}
-      </JTabList>
+    <>
+      {share ? (
+        <Snapshots share={share} />
+      ) : (
+        <JTabs defaultValue={0} size="sm">
+          <JTabList
+            className="action-text"
+            variant="plain"
+            sx={{
+              "--List-padding": "0px",
+              "--List-radius": "0px",
+              "--ListItem-minHeight": "48px",
+              [`& .${tabClasses.root}`]: {
+                boxShadow: "none",
+                fontWeight: "md",
+                [`&.${tabClasses.selected}::before`]: {
+                  content: '""',
+                  display: "block",
+                  position: "absolute",
+                  left: "var(--ListItem-paddingLeft)", // change to `0` to stretch to the edge.
+                  right: "var(--ListItem-paddingRight)", // change to `0` to stretch to the edge.
+                  bottom: 0,
+                  height: 3,
+                  bgcolor: "primary.400",
+                },
+              },
+              width: "50%",
+              margin: "auto",
+              marginBottom: "20px",
+            }}
+          >
+            <JTab>ERD</JTab>
+            <JTab>Installation (instructions)</JTab>
+            {/* <JTab>Snapshots (versions)</JTab> */}
+            {/* <JTab>Analytics</JTab> */}
+            {/* <JTab>Notifications</JTab> */}
+          </JTabList>
 
-      <JTabPanel value={0} sx={{ height: "75vh" }}>
-        <Snapshots />
-      </JTabPanel>
+          <JTabPanel value={0} sx={{ height: "75vh" }}>
+            <Snapshots />
+          </JTabPanel>
 
-      <JTabPanel value={1} sx={{ height: "fit-content" }}>
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            justifyContent: "center",
-            boxSizing: "border-box",
-            padding: "10px",
-          }}
-        >
-          <Markdown markdown={instructions ?? ""} />
-        </div>
-      </JTabPanel>
-    </JTabs>
+          <JTabPanel value={1} sx={{ height: "fit-content" }}>
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                justifyContent: "center",
+                boxSizing: "border-box",
+                padding: "10px",
+              }}
+            >
+              <Markdown markdown={instructions ?? ""} />
+            </div>
+          </JTabPanel>
+        </JTabs>
+      )}
+    </>
   );
 }
 

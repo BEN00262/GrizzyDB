@@ -15,7 +15,7 @@ const customStyles = {
   }),
 };
 
-export default function Snapshots() {
+export default function Snapshots({ share }: { share?: boolean }) {
   const params = useParams();
   const [options, setOptions] = useState<
     {
@@ -48,87 +48,93 @@ export default function Snapshots() {
   });
 
   return (
-    <Row>
-      <Col xs={12}>
-        <div>
-          <h5>Snapshots</h5>
-        </div>
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: "20px",
-          }}
-        >
-          <Select
-            options={options}
-            onChange={(e) => {
-              setBase((old) => ({
-                ...old,
-                main: e?.value ?? "",
-              }));
-            }}
-            styles={customStyles}
-            value={options?.[0]}
-            components={{
-              SingleValue: ({ children, ...props }) => {
-                return (
-                  <components.SingleValue {...props}>
-                    {"base: " + children}
-                  </components.SingleValue>
-                );
-              },
-              Placeholder: ({ children, ...props }) => {
-                return (
-                  <components.Placeholder {...props}>
-                    {"base: " + children}
-                  </components.Placeholder>
-                );
-              },
-              IndicatorSeparator: () => null,
-            }}
-          />
-          <ArrowBackIcon />
-          <Select
-            options={options}
-            onChange={(e) => {
-              setBase((old) => ({
-                ...old,
-                base: e?.value ?? "",
-              }));
-            }}
-            styles={customStyles}
-            value={options?.[0]}
-            components={{
-              SingleValue: ({ children, ...props }) => {
-                return (
-                  <components.SingleValue {...props}>
-                    {"compare: " + children}
-                  </components.SingleValue>
-                );
-              },
-              Placeholder: ({ children, ...props }) => {
-                return (
-                  <components.Placeholder {...props}>
-                    {"compare: " + children}
-                  </components.Placeholder>
-                );
-              },
-              IndicatorSeparator: () => null,
-            }}
-          />
-        </div>
-        <div
-          style={{
-            height: "70vh",
-            marginTop: "20px",
-            border: "1px solid #efefef",
-            padding: "5px",
-          }}
-        >
-          <Visualizer main={base.main} base={base.base} />
-        </div>
-      </Col>
-    </Row>
+    <>
+      {share ? (
+        <Visualizer main={base.main} base={base.base} />
+      ) : (
+        <Row>
+          <Col xs={12}>
+            <div>
+              <h5>Snapshots</h5>
+            </div>
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "20px",
+              }}
+            >
+              <Select
+                options={options}
+                onChange={(e) => {
+                  setBase((old) => ({
+                    ...old,
+                    main: e?.value ?? "",
+                  }));
+                }}
+                styles={customStyles}
+                value={options?.[0]}
+                components={{
+                  SingleValue: ({ children, ...props }) => {
+                    return (
+                      <components.SingleValue {...props}>
+                        {"base: " + children}
+                      </components.SingleValue>
+                    );
+                  },
+                  Placeholder: ({ children, ...props }) => {
+                    return (
+                      <components.Placeholder {...props}>
+                        {"base: " + children}
+                      </components.Placeholder>
+                    );
+                  },
+                  IndicatorSeparator: () => null,
+                }}
+              />
+              <ArrowBackIcon />
+              <Select
+                options={options}
+                onChange={(e) => {
+                  setBase((old) => ({
+                    ...old,
+                    base: e?.value ?? "",
+                  }));
+                }}
+                styles={customStyles}
+                value={options?.[0]}
+                components={{
+                  SingleValue: ({ children, ...props }) => {
+                    return (
+                      <components.SingleValue {...props}>
+                        {"compare: " + children}
+                      </components.SingleValue>
+                    );
+                  },
+                  Placeholder: ({ children, ...props }) => {
+                    return (
+                      <components.Placeholder {...props}>
+                        {"compare: " + children}
+                      </components.Placeholder>
+                    );
+                  },
+                  IndicatorSeparator: () => null,
+                }}
+              />
+            </div>
+            <div
+              style={{
+                height: "70vh",
+                marginTop: "20px",
+                border: "1px solid #efefef",
+                padding: "5px",
+              }}
+            >
+              <Visualizer main={base.main} base={base.base} />
+            </div>
+          </Col>
+        </Row>
+      )}
+    </>
   );
 }

@@ -878,11 +878,11 @@ export class DatabaseController {
           })
         );
 
-        await Promise.allSettled(
-          databases.map(async database => {
-            await sendToSnapshotGeneratorQueue({ database_id: database._id, task: 'snapshot' });
-          })
-        )
+        // await Promise.allSettled(
+        //   databases.map(async database => {
+        //     await sendToSnapshotGeneratorQueue({ database_id: database._id, task: 'snapshot' });
+        //   })
+        // )
       }
 
       return massage_response({ status: true }, res);

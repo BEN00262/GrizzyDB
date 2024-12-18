@@ -68,6 +68,7 @@ function App() {
                     element={<DatabaseDashboard />}
                   />
                   <Route path="/dashboard/:id/*" element={<DatabaseView />} />
+                  <Route path="/share/:id/*" element={<DatabaseView share={true} />} />
                 </Route>
               </Routes>
             </BrowserRouter>

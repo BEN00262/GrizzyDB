@@ -11,8 +11,15 @@ import { delete_database, get_database, update_database_metadata } from "./api";
 import ImportComponent from "../landing/components/Import";
 import ExportComponent from "../landing/components/Export";
 import RelationalDB from "../../components/Dashboard/RelationalDB";
+import { Snackbar } from "@mui/material";
 
-function BringYourOwnDB({ database }: { database: IDatabaseDisplay }) {
+function BringYourOwnDB({
+  database,
+  share,
+}: {
+  database: IDatabaseDisplay;
+  share?: boolean;
+}) {
   const params = useParams();
   const [title, setTitle] = useState(database.name ?? "");
 
@@ -40,62 +47,76 @@ function BringYourOwnDB({ database }: { database: IDatabaseDisplay }) {
 
   return (
     <>
-      <div
-        style={{
-          display: "flex",
-          flexDirection: "row",
-          justifyContent: "space-between",
-          alignItems: "center",
-        }}
-      >
-        <div style={{ flex: 2 }}>
-          <Textarea
-            placeholder="Type database / project name..."
-            variant="plain"
-            onBlur={(e) => {
-              handleMetadataUpdate.mutate();
+      {share ? null : (
+        <>
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "row",
+              justifyContent: "space-between",
+              alignItems: "center",
             }}
-            onChange={(e) => {
-              setTitle(e.target.value);
-            }}
-            value={title}
-            sx={{
-              "--Textarea-focusedInset": "var(--any, )",
-              "--Textarea-focusedThickness": "1px",
-              "--Textarea-focusedHighlight": "transparent",
-              "&::before": {
-                transition: "box-shadow .15s ease-in-out",
-              },
-              "&:focus-within": {
-                borderColor: "#86b7fe",
-              },
-              backgroundColor: "transparent",
-              fontFamily: "'Sofia Sans Condensed', sans-serif",
-              fontWeight: "bold",
-              fontSize: "1.3rem",
-            }}
-          />
-        </div>
-
-        <div
-          style={{
-            display: "flex",
-            gap: "10px",
-          }}
-        >
-          <LoadingButton
-            variant="text"
-            loading={handleDeleteDB.isLoading}
-            onClick={() => handleDeleteDB.mutate()}
-            size="small"
-            color="error"
           >
-            delete
-          </LoadingButton>
-        </div>
-      </div>
+            <div style={{ flex: 2 }}>
+              <Textarea
+                placeholder="Type database / project name..."
+                variant="plain"
+                onBlur={(e) => {
+                  handleMetadataUpdate.mutate();
+                }}
+                onChange={(e) => {
+                  setTitle(e.target.value);
+                }}
+                value={title}
+                sx={{
+                  "--Textarea-focusedInset": "var(--any, )",
+                  "--Textarea-focusedThickness": "1px",
+                  "--Textarea-focusedHighlight": "transparent",
+                  "&::before": {
+                    transition: "box-shadow .15s ease-in-out",
+                  },
+                  "&:focus-within": {
+                    borderColor: "#86b7fe",
+                  },
+                  backgroundColor: "transparent",
+                  fontFamily: "'Sofia Sans Condensed', sans-serif",
+                  fontWeight: "bold",
+                  fontSize: "1.3rem",
+                }}
+              />
+            </div>
 
-      <Divider />
+            <div
+              style={{
+                display: "flex",
+                gap: "10px",
+              }}
+            >
+              <LoadingButton
+                variant="text"
+                loading={handleDeleteDB.isLoading}
+                onClick={() => handleDeleteDB.mutate()}
+                size="small"
+                color="success"
+              >
+                share
+              </LoadingButton>
+
+              <LoadingButton
+                variant="text"
+                loading={handleDeleteDB.isLoading}
+                onClick={() => handleDeleteDB.mutate()}
+                size="small"
+                color="error"
+              >
+                delete
+              </LoadingButton>
+            </div>
+          </div>
+
+          <Divider />
+        </>
+      )}
 
       <div
         style={{
@@ -103,13 +124,19 @@ function BringYourOwnDB({ database }: { database: IDatabaseDisplay }) {
           height: "75vh",
         }}
       >
-        <BringYourOwnDBUI {...database} />
+        <BringYourOwnDBUI {...database} share={share} />
       </div>
     </>
   );
 }
 
-export function DBDisplayFactory({ database }: { database: IDatabaseDisplay }) {
+export function DBDisplayFactory({
+  database,
+  share,
+}: {
+  database: IDatabaseDisplay;
+  share?: boolean;
+}) {
   // switch (database.dialect) {
   //   case "chromadb":
   //     return <ChromaDB {...database} />;
@@ -117,11 +144,18 @@ export function DBDisplayFactory({ database }: { database: IDatabaseDisplay }) {
   //   //   return <RethinkDB {...database} />;
   // }
 
-  return <RelationalDB {...database} />;
+  return <RelationalDB {...database} share={share} />;
 }
 
-function HostedDB({ database }: { database: IDatabaseDisplay }) {
+function HostedDB({
+  database,
+  share,
+}: {
+  database: IDatabaseDisplay;
+  share?: boolean;
+}) {
   const params = useParams();
+  const [copied, setCopied] = useState(false);
   const [title, setTitle] = useState(database.name ?? "");
 
   const navigate = useNavigate();
@@ -148,50 +182,52 @@ function HostedDB({ database }: { database: IDatabaseDisplay }) {
 
   return (
     <>
-      <div
-        style={{
-          display: "flex",
-          flexDirection: "row",
-          justifyContent: "space-between",
-          alignItems: "center",
-        }}
-      >
-        <div style={{ flex: 2 }}>
-          <Textarea
-            placeholder="Type database / project name..."
-            variant="plain"
-            onBlur={(e) => {
-              handleMetadataUpdate.mutate();
+      {share ? null : (
+        <>
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "row",
+              justifyContent: "space-between",
+              alignItems: "center",
             }}
-            onChange={(e) => {
-              setTitle(e.target.value);
-            }}
-            value={title}
-            sx={{
-              "--Textarea-focusedInset": "var(--any, )",
-              "--Textarea-focusedThickness": "1px",
-              "--Textarea-focusedHighlight": "transparent",
-              "&::before": {
-                transition: "box-shadow .15s ease-in-out",
-              },
-              "&:focus-within": {
-                borderColor: "#86b7fe",
-              },
-              backgroundColor: "transparent",
-              fontFamily: "'Sofia Sans Condensed', sans-serif",
-              fontWeight: "bold",
-              fontSize: "1.3rem",
-            }}
-          />
-        </div>
-        <div
-          style={{
-            display: "flex",
-            gap: "10px",
-            alignItems: "center",
-          }}
-        >
-          {/* {["postgres", "mariadb", "mysql"].includes(database.dialect) ? (
+          >
+            <div style={{ flex: 2 }}>
+              <Textarea
+                placeholder="Type database / project name..."
+                variant="plain"
+                onBlur={(e) => {
+                  handleMetadataUpdate.mutate();
+                }}
+                onChange={(e) => {
+                  setTitle(e.target.value);
+                }}
+                value={title}
+                sx={{
+                  "--Textarea-focusedInset": "var(--any, )",
+                  "--Textarea-focusedThickness": "1px",
+                  "--Textarea-focusedHighlight": "transparent",
+                  "&::before": {
+                    transition: "box-shadow .15s ease-in-out",
+                  },
+                  "&:focus-within": {
+                    borderColor: "#86b7fe",
+                  },
+                  backgroundColor: "transparent",
+                  fontFamily: "'Sofia Sans Condensed', sans-serif",
+                  fontWeight: "bold",
+                  fontSize: "1.3rem",
+                }}
+              />
+            </div>
+            <div
+              style={{
+                display: "flex",
+                gap: "10px",
+                alignItems: "center",
+              }}
+            >
+              {/* {["postgres", "mariadb", "mysql"].includes(database.dialect) ? (
             <>
               <SQLEditorComp />
               <div
@@ -202,7 +238,7 @@ function HostedDB({ database }: { database: IDatabaseDisplay }) {
               />
             </>
           ) : null} */}
-          {/* <div style={{
+              {/* <div style={{
             height: "20px",
             border: "1px solid #efefef"
           }}/>
@@ -212,32 +248,62 @@ function HostedDB({ database }: { database: IDatabaseDisplay }) {
             border: "1px solid #efefef"
           }}/>
           <ExportComponent/> */}
-          <LoadingButton
-            variant="text"
-            loading={handleDeleteDB.isLoading}
-            onClick={() => handleDeleteDB.mutate()}
-            size="small"
-            color="error"
-          >
-            delete
-          </LoadingButton>
-        </div>
-      </div>
+              <LoadingButton
+                variant="text"
+                loading={handleDeleteDB.isLoading}
+                onClick={() => {
+                  // copy link
+                  navigator.clipboard.writeText(
+                    `${window.location.origin}/share/${params.id}`
+                  );
 
-      <Divider />
+                  setCopied(true);
+
+                  setTimeout(() => {
+                    setCopied(false);
+                  }, 1000);
+                }}
+                size="small"
+                color="primary"
+              >
+                share
+              </LoadingButton>
+
+              <LoadingButton
+                variant="text"
+                loading={handleDeleteDB.isLoading}
+                onClick={() => handleDeleteDB.mutate()}
+                size="small"
+                color="error"
+              >
+                delete
+              </LoadingButton>
+            </div>
+          </div>
+
+          <Divider />
+        </>
+      )}
 
       <div
         style={{
           marginTop: "20px",
         }}
       >
-        <DBDisplayFactory database={database} />
+        <DBDisplayFactory database={database} share={share} />
       </div>
+
+      <Snackbar
+        open={copied}
+        autoHideDuration={1000}
+        onClose={() => setCopied(false)}
+        message="Share Link Copied to Clipboard"
+      />
     </>
   );
 }
 
-export default function DatabaseView() {
+export default function DatabaseView({ share }: { share?: boolean }) {
   const params = useParams();
 
   // get the database
@@ -256,9 +322,9 @@ export default function DatabaseView() {
   return (
     <>
       {database.product_type === "bring_your_own" ? (
-        <BringYourOwnDB database={database} />
+        <BringYourOwnDB database={database} share={share} />
       ) : (
-        <HostedDB database={database} />
+        <HostedDB database={database} share={share} />
       )}
     </>
   );

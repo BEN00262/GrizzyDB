@@ -58,6 +58,12 @@ import { download_sql_dump_file } from '../utils/index.js';
                                   process.env.MASTER_AES_ENCRYPTION_KEY
                                 ).toString(CryptoJS.enc.Utf8)
                             );
+
+                            console.log({
+                                credentials,
+                                remote_actual_credentials,
+                                task
+                            })
     
                             // if its an import stuff ( we dont do this we directly get the data from the remote server )
                             const schema_generated = JSON.stringify(
@@ -69,17 +75,17 @@ import { download_sql_dump_file } from '../utils/index.js';
                         
                             let schema_version_checksum = md5(schema_generated);
     
-                            const upload_location = await GrizzyDatabaseEngine.dump_database_to_file(
-                                database.dialect,
-                                task === 'import' ? remote_actual_credentials : credentials
-                            );
+                            // const upload_location = await GrizzyDatabaseEngine.dump_database_to_file(
+                            //     database.dialect,
+                            //     task === 'import' ? remote_actual_credentials : credentials
+                            // );
                     
                             // we good at this point
                             await SnapshotModel.updateOne({ _id: snapshot._id },{
                                 checksum: schema_version_checksum,
                                 snapshot: LzString.compressToBase64(schema_generated),
                                 status: 'done',
-                                url_to_dump: upload_location
+                                url_to_dump: '' // upload_location
                             });
 
                             switch (task) {
