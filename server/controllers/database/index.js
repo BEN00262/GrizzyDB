@@ -1098,12 +1098,12 @@ export class DatabaseController {
       const [main, base] = await Promise.all([
         SnapshotModel.findOne({
           _id: main_schema,
-          owner: req.user._id,
+          // owner: req.user._id,
         }),
 
         SnapshotModel.findOne({
           _id: base_schema,
-          owner: req.user._id,
+          // owner: req.user._id,
         }),
       ]);
 
