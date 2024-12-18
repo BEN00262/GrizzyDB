@@ -47,7 +47,44 @@ function BringYourOwnDB({
 
   return (
     <>
-      {share ? null : (
+      {share ? (
+        <>
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "row",
+              justifyContent: "space-between",
+              alignItems: "center",
+            }}
+          >
+            <div style={{ flex: 2 }}>
+              <Textarea
+                placeholder="Type database / project name..."
+                variant="plain"
+                disabled={true}
+                value={title}
+                sx={{
+                  "--Textarea-focusedInset": "var(--any, )",
+                  "--Textarea-focusedThickness": "1px",
+                  "--Textarea-focusedHighlight": "transparent",
+                  "&::before": {
+                    transition: "box-shadow .15s ease-in-out",
+                  },
+                  "&:focus-within": {
+                    borderColor: "#86b7fe",
+                  },
+                  backgroundColor: "transparent",
+                  fontFamily: "'Sofia Sans Condensed', sans-serif",
+                  fontWeight: "bold",
+                  fontSize: "1.3rem",
+                }}
+              />
+            </div>
+          </div>
+
+          <Divider />
+        </>
+      ) : (
         <>
           <div
             style={{
@@ -182,7 +219,44 @@ function HostedDB({
 
   return (
     <>
-      {share ? null : (
+      {share ? (
+        <>
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "row",
+            justifyContent: "space-between",
+            alignItems: "center",
+          }}
+        >
+          <div style={{ flex: 2 }}>
+            <Textarea
+              placeholder="Database / project name..."
+              variant="plain"
+              disabled={true}
+              value={title}
+              sx={{
+                "--Textarea-focusedInset": "var(--any, )",
+                "--Textarea-focusedThickness": "1px",
+                "--Textarea-focusedHighlight": "transparent",
+                "&::before": {
+                  transition: "box-shadow .15s ease-in-out",
+                },
+                "&:focus-within": {
+                  borderColor: "#86b7fe",
+                },
+                backgroundColor: "transparent",
+                fontFamily: "'Sofia Sans Condensed', sans-serif",
+                fontWeight: "bold",
+                fontSize: "1.3rem",
+              }}
+            />
+          </div>
+        </div>
+
+        <Divider />
+      </>
+      ) : (
         <>
           <div
             style={{
@@ -227,27 +301,6 @@ function HostedDB({
                 alignItems: "center",
               }}
             >
-              {/* {["postgres", "mariadb", "mysql"].includes(database.dialect) ? (
-            <>
-              <SQLEditorComp />
-              <div
-                style={{
-                  height: "20px",
-                  border: "1px solid #efefef",
-                }}
-              />
-            </>
-          ) : null} */}
-              {/* <div style={{
-            height: "20px",
-            border: "1px solid #efefef"
-          }}/>
-          <ImportComponent/>
-          <div style={{
-            height: "20px",
-            border: "1px solid #efefef"
-          }}/>
-          <ExportComponent/> */}
               <LoadingButton
                 variant="text"
                 loading={handleDeleteDB.isLoading}
