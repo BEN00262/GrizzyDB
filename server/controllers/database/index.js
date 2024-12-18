@@ -1634,8 +1634,10 @@ export class DatabaseController {
 
   static async get_database(req, res) {
     try {
+      // sometimes the DB is shared -- we need to ignore the user check for now -- fix it later by creating share groups
+
       let database = (await DatabaseModel.findOne({
-          owner: req.user._id,
+          // owner: req.user._id,
           _id: req.params.database_reference,
       }).lean()) ?? {};
 
