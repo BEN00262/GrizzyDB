@@ -1303,7 +1303,7 @@ export class DatabaseController {
 
       const snapshot = await SnapshotModel.findOne({
         _id: snapshot_reference,
-        owner: req.user._id,
+        // owner: req.user._id,
       });
 
       if (!snapshot) {
@@ -1336,7 +1336,7 @@ export class DatabaseController {
 
       const snapshots = await SnapshotModel.find({
         database: database_reference,
-        owner: req.user._id,
+        // owner: req.user._id,
       })
         .select("_id checksum status failure_reason createdAt updatedAt")
         .sort({ updatedAt: -1 /* descending order latest to oldest */ })
