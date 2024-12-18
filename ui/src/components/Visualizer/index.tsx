@@ -290,27 +290,27 @@ const Flow: React.FC<FlowProps> = (props: FlowProps) => {
 
   // we will not support full screen views in the demo version
   const toggleFullScreen = () => {
-    // if(fullscreenOn) {
-    //   document.exitFullscreen().then(function() {
-    //     setFullScreen(false)
-    //   })
-    //   .catch(function(error) {
-    //     alert("Can't exit fullscreen")
-    //     console.error(error)
-    //   });
-    // } else {
-    //   const element = document.querySelector("body");
+    if(fullscreenOn) {
+      document.exitFullscreen().then(function() {
+        setFullScreen(false)
+      })
+      .catch(function(error) {
+        alert("Can't exit fullscreen")
+        console.error(error)
+      });
+    } else {
+      const element = document.querySelector("body");
 
-    //   // make the element go to full-screen mode
-    //   element && element.requestFullscreen()
-    //     .then(function() {
-    //       setFullScreen(true)
-    //     })
-    //     .catch(function(error) {
-    //       alert("Can't turn on fullscreen")
-    //       console.error(error)
-    //     });
-    // }
+      // make the element go to full-screen mode
+      element && element.requestFullscreen()
+        .then(function() {
+          setFullScreen(true)
+        })
+        .catch(function(error) {
+          alert("Can't turn on fullscreen")
+          console.error(error)
+        });
+    }
   }
 
   // https://stackoverflow.com/questions/16664584/changing-an-svg-markers-color-css

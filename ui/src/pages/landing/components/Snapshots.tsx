@@ -50,7 +50,15 @@ export default function Snapshots({ share }: { share?: boolean }) {
   return (
     <>
       {share ? (
+        <div
+        style={{
+          height: "80vh",
+          border: "1px solid #efefef",
+          padding: "5px",
+        }}
+      >
         <Visualizer main={base.main} base={base.base} />
+      </div>
       ) : (
         <Row>
           <Col xs={12}>
