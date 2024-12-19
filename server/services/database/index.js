@@ -252,6 +252,8 @@ export class GrizzyDatabaseEngine {
      * @param {string} schema_and_data 
      */
     static async push_schema_and_data_to_database(schema_and_data, dialect, credentials = {}) {
+        console.log(credentials);
+        
         const statements = identify(schema_and_data.replace(/USE\s+\w+;?\n*/i, ''));
 
         const sequelize = new Sequelize(credentials.DB_NAME, credentials.DB_USER, credentials.DB_PASSWORD, {

@@ -82,6 +82,7 @@
     "compute-scroll-into-view": "^1.0.17",
     "copy-to-clipboard": "^3.3.3",
     "crossfilter2": "^1.5.4",
+    "dagre": "^0.8.5",
     "dayjs": "^1.11.1",
     "dbgate-query-splitter": "^4.9.3",
     "debug": "^4.3.4",

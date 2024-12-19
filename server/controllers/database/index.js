@@ -971,7 +971,7 @@ export class DatabaseController {
         selected_template,
       } = req.body;
 
-      await check_if_has_active_subscription(req);
+      // await check_if_has_active_subscription(req);
 
       // check what we have first
       if (selected_template === "bring_your_own") {
@@ -1018,29 +1018,18 @@ export class DatabaseController {
       switch (selected_template) {
         case "sample":
           await GrizzyDatabaseEngine.push_schema_and_data_to_database(
-            sample_data_template,
-            dialect,
-            credentials
+            sample_data_template, dialect, credentials
           );
 
           break;
 
         case "custom":
+          const sql_statements = `${custom_schema_template}
+                        ${(await GrizzyLLMInstance.generate_sample_data_for_schema(custom_schema_template,[dialect]))
+                          ?.filter((u) => u)?.map(({ sql_statements }) => sql_statements).join("\n\n")}`;
+          
           await GrizzyDatabaseEngine.push_schema_and_data_to_database(
-            `${custom_schema_template}
-                        
-                        ${(
-                          await GrizzyLLMInstance.generate_sample_data_for_schema(
-                            custom_schema_template,
-                            [dialect]
-                          )
-                        )
-                          ?.filter((u) => u)
-                          ?.map(({ sql_statements }) => sql_statements)
-                          .join("\n\n")}
-                        `,
-            dialect,
-            credentials
+            sql_statements, dialect, credentials
           );
 
           break;

@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import dagre from "dagre";
 import ReactFlow, {
   Background,
   ControlButton,
@@ -66,6 +67,10 @@ interface VisualizerProps {
   base?:string;
   hide_minmap?:boolean;
 }
+
+const dagreGraph = new dagre.graphlib.Graph();
+dagreGraph.setDefaultEdgeLabel(() => ({}));
+dagreGraph.setGraph({ rankdir: 'LR' }); // 'TB' for top-to-bottom layout
 
 const Flow: React.FC<FlowProps> = (props: FlowProps) => {
   const currentDatabase = props.currentDatabase;
@@ -313,12 +318,32 @@ const Flow: React.FC<FlowProps> = (props: FlowProps) => {
     }
   }
 
+  const modded_nodes_and_edges = useMemo(() => {
+    nodes.forEach(node => dagreGraph.setNode(node.id, { width: node.width, height: node.height }));
+    edges.forEach(edge => dagreGraph.setEdge(edge.source, edge.target));
+
+    dagre.layout(dagreGraph);
+
+    const modded_nodes = nodes.map(node => {
+      const moddedNode = dagreGraph.node(node.id);
+      node.position = {
+        x: moddedNode.x,
+        y: moddedNode.y
+      };
+
+      return node;
+    });
+
+
+    return { nodes: modded_nodes, edges };
+  }, [nodes, edges]);
+
   // https://stackoverflow.com/questions/16664584/changing-an-svg-markers-color-css
   return (
     <div className="Flow">
       <Markers />
       <ReactFlow
-        nodes={nodes}
+        nodes={modded_nodes_and_edges.nodes}
         edges={edges}
         onNodesChange={handleNodesChange}
         onEdgesChange={onEdgesChange}

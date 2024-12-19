@@ -14,6 +14,15 @@ import { OpenAI } from "langchain/llms/openai";
 import { SqlDatabase } from "langchain/sql_db";
 import { createSqlAgent, SqlToolkit } from "langchain/agents";
 import { DataSource } from "typeorm";
+import MarkdownIt from 'markdown-it';
+import * as yup from 'yup';
+
+const sample_data_format = yup.array().of(
+    yup.object().shape({
+        dialect: yup.string().required(),
+        sql_statements: yup.string().required()
+    })
+);
 
 class GrizzyLLM {
     constructor() {
@@ -48,9 +57,17 @@ class GrizzyLLM {
             max_tokens: 14385 /* 2k short */
         });
 
-        // console.log(chatCompletion?.data?.choices?.[0]?.message?.content)
+        const md = new MarkdownIt();
 
-        return findAndParseJsonLikeText(chatCompletion?.data?.choices?.[0]?.message?.content);
+        const extracted_formatted_sql_data = chatCompletion?.data?.choices?.[0]?.message?.content?.trim();
+    
+        const tokens = md.parse(extracted_formatted_sql_data, {});
+
+        const sql_statements = tokens
+          .filter(token => token.type === 'fence' && token.info.trim() === 'json' && sample_data_format.isValidSync(JSON.parse(token.content)))
+          .map(token => JSON.parse(token.content));
+
+        return sql_statements[0];
     }
 
     /**
@@ -73,17 +90,25 @@ class GrizzyLLM {
 
         const chatCompletion = await this.openai.createChatCompletion({
             model: "gpt-4o-mini",
+            
             messages: [{
                 role: "user", 
                 content: template
             }],
-            temperature: 0,
-            max_tokens: 14385 /* 2k short */
+            temperature: 0
         });
 
-        // console.log(chatCompletion?.data?.choices?.[0]?.message?.content);
+        const md = new MarkdownIt();
 
-        return findAndParseJsonLikeText(chatCompletion?.data?.choices?.[0]?.message?.content);
+        const extracted_formatted_sql_data = chatCompletion?.data?.choices?.[0]?.message?.content?.trim();
+    
+        const tokens = md.parse(extracted_formatted_sql_data, {});
+
+        const sql_statements = tokens
+          .filter(token => token.type === 'fence' && token.info.trim() === 'json' && sample_data_format.isValidSync(JSON.parse(token.content)))
+          .map(token => JSON.parse(token.content));
+
+        return sql_statements[0];
     }
 
     /**
